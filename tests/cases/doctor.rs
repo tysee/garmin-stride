@@ -1,4 +1,4 @@
-//! tests/cases/doctor.rs drives `pace doctor` and a failing sync through the built executable
+//! tests/cases/doctor.rs drives `stride doctor` and a failing sync through the built executable
 //! against loopback stand-ins: keyless reachability, and classified failures that name the
 //! host and route without leaking keys.
 
@@ -50,7 +50,7 @@ fn configure(fixture: &Fixture, base: &str, proxy: Option<&str>) -> Result<()> {
 }
 
 /// The CLI without inherited proxies, so loopback requests stay direct on any machine.
-fn pace(fixture: &Fixture) -> Command {
+fn stride(fixture: &Fixture) -> Command {
     let mut command = fixture.command();
     for name in PROXY_VARIABLES {
         command.env_remove(name);
@@ -100,7 +100,7 @@ fn doctor_reaches_every_garmin_endpoint_without_sending_keys() -> Result<()> {
     let fixture = Fixture::new()?;
     let (base, server) = answer_unauthorized(4)?;
     configure(&fixture, &base, None)?;
-    let output = pace(&fixture).arg("doctor").output()?;
+    let output = stride(&fixture).arg("doctor").output()?;
     let requests = server
         .join()
         .map_err(|_| anyhow::anyhow!("doctor fixture panicked"))??;
@@ -131,7 +131,7 @@ fn network_failures_name_the_cause_host_and_route() -> Result<()> {
     fixture.init()?;
     let base = closed_base()?;
     configure(&fixture, &base, None)?;
-    let doctor = pace(&fixture).arg("doctor").output()?;
+    let doctor = stride(&fixture).arg("doctor").output()?;
     assert!(!doctor.status.success());
     let report = json(&doctor)?;
     for endpoint in report["endpoints"].as_array().context("endpoints")? {
@@ -140,7 +140,7 @@ fn network_failures_name_the_cause_host_and_route() -> Result<()> {
     }
     assert!(String::from_utf8_lossy(&doctor.stderr).contains("no key was sent"));
 
-    let sync = pace(&fixture)
+    let sync = stride(&fixture)
         .args(["garmin", "sync", "--limit", "2"])
         .output()?;
     assert!(!sync.status.success());
@@ -152,7 +152,7 @@ fn network_failures_name_the_cause_host_and_route() -> Result<()> {
         )),
         "{stderr}"
     );
-    assert!(stderr.contains("pace doctor"));
+    assert!(stderr.contains("stride doctor"));
     assert!(!stderr.contains(KEY) && !String::from_utf8_lossy(&sync.stdout).contains(KEY));
     Ok(())
 }
@@ -162,7 +162,7 @@ fn configured_proxy_is_used_and_reported_without_credentials() -> Result<()> {
     let fixture = Fixture::new()?;
     let proxy = closed_base()?;
     configure(&fixture, "http://127.0.0.1:9", Some(&proxy))?;
-    let output = pace(&fixture).arg("doctor").output()?;
+    let output = stride(&fixture).arg("doctor").output()?;
     assert!(!output.status.success());
     let report = json(&output)?;
     assert_eq!(
@@ -182,7 +182,7 @@ fn configured_proxy_is_used_and_reported_without_credentials() -> Result<()> {
     let with_credentials = proxy.replace("http://", "http://user:secret@");
     let text = fs::read_to_string(&fixture.config)?.replace(&proxy, &with_credentials);
     fs::write(&fixture.config, text)?;
-    let output = pace(&fixture).arg("doctor").output()?;
+    let output = stride(&fixture).arg("doctor").output()?;
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("without credentials") && !stderr.contains("secret"));
@@ -199,7 +199,7 @@ fn environment_route_is_decided_per_host_with_no_proxy() -> Result<()> {
     let ip = host.split(':').next().context("loopback IP")?;
     // Loopback stand-ins use http://, so HTTP_PROXY is the variable the client consults.
     let with_proxy = |exempt: Option<&str>| {
-        let mut command = pace(&fixture);
+        let mut command = stride(&fixture);
         command.env(
             "HTTP_PROXY",
             proxy.replace("http://", "http://user:secret@"),

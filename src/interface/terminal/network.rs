@@ -1,6 +1,6 @@
 //! src/interface/terminal/network.rs shows and changes the Garmin proxy and extra CA file.
-//! Saving runs `pace config network`, which edits only those keys; the screen also runs
-//! `pace doctor` on request. Nothing here contacts Garmin unless the user asks for the check.
+//! Saving runs `stride config network`, which edits only those keys; the screen also runs
+//! `stride doctor` on request. Nothing here contacts Garmin unless the user asks for the check.
 
 use super::{App, Choice, Selection};
 use crate::{
@@ -38,7 +38,7 @@ impl App {
                 Choice::new("Extra CA file", ca(&current)),
                 Choice::new(
                     "Check Garmin connection",
-                    "Run pace doctor: route, trust and reachability per Garmin host",
+                    "Run stride doctor: route, trust and reachability per Garmin host",
                 ),
             ];
             match self.view.select(TITLE, &choices, &mut state, false)? {

@@ -1,13 +1,13 @@
-# Contributing to Garmin Pace
+# Contributing to Garmin Stride
 
-Thanks for your interest in Pace. Bug reports, documentation fixes and focused
+Thanks for your interest in Stride. Bug reports, documentation fixes and focused
 pull requests are welcome. By participating you agree to follow the
 [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Reporting bugs and requesting features
 
-Use [GitHub Issues](https://github.com/tysee/garmin-pace/issues) and pick the
-matching template. For a bug, include the Pace version, OS and architecture, the
+Use [GitHub Issues](https://github.com/tysee/garmin-stride/issues) and pick the
+matching template. For a bug, include the Stride version, OS and architecture, the
 command, expected and actual behavior, and sanitized output. Remove tokens, keys,
 Garmin account details and personal health data before posting.
 
@@ -19,9 +19,9 @@ Do not report security vulnerabilities in public issues; follow the
 ## Development environment
 
 Maintainers use [mise](https://mise.jdx.dev/) for the pinned development tools and
-tasks in [mise.toml](mise.toml). It is a development convenience, not a Pace runtime
+tasks in [mise.toml](mise.toml). It is a development convenience, not a Stride runtime
 requirement. With those tools already installed, `mise trust` and `mise run build`
-build the debug binary; `mise exec -- pace ...` supplies its PATH and configuration.
+build the debug binary; `mise exec -- stride ...` supplies its PATH and configuration.
 The [Podman and installer packaging commands](docs/deployment.md) also use this
 maintainer environment. Install missing tools only as an explicit setup step.
 

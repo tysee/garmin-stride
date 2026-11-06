@@ -189,7 +189,7 @@ impl App {
             return Ok(());
         };
         let details = format!(
-            "User: {name}\nLifetime: {}. The key is shown once on the next screen and saved nowhere; Pace keeps only its hash. Existing keys stay valid until they expire or are revoked.",
+            "User: {name}\nLifetime: {}. The key is shown once on the next screen and saved nowhere; Stride keeps only its hash. Existing keys stay valid until they expire or are revoked.",
             lifetime.label
         );
         if !self.confirm(
@@ -201,7 +201,7 @@ impl App {
         }
         let key = users::issue_revealed_key(&settings, &name, lifetime.days)?;
         let text = format!(
-            "New MCP key for {name}. Copy it now: it is shown only once.\n\n{}\n\nKey ID: {}\nExpires: {}\n\nSet it in the client as the header Authorization: Bearer <key>. Never put it in a URL. If it is lost, issue a new key and revoke this one: pace users revoke-key {}",
+            "New MCP key for {name}. Copy it now: it is shown only once.\n\n{}\n\nKey ID: {}\nExpires: {}\n\nSet it in the client as the header Authorization: Bearer <key>. Never put it in a URL. If it is lost, issue a new key and revoke this one: stride users revoke-key {}",
             key.token,
             key.id,
             date(key.expires),
@@ -273,7 +273,7 @@ impl App {
         let mut choices = vec![Choice::new(
             "Profile",
             format!(
-                "Issue keys in Onboarding step 8; revoke with pace users revoke-key KEY_ID; database {}",
+                "Issue keys in Onboarding step 8; revoke with stride users revoke-key KEY_ID; database {}",
                 entry.user.database_path.display()
             ),
         )];
@@ -288,7 +288,7 @@ impl App {
         while let Some(index) = self.view.table(&title, KEYS, &choices, &mut state, true)? {
             let text = if index == 0 {
                 format!(
-                    "User: {}\nState: {}\nGarmin writes by its model: {}\nProfile database: {}\nGarmin session: {}\n\nIssue keys in Onboarding, step 8. Revoke with: pace users revoke-key KEY_ID\nGrant or deny Garmin writes with: pace users allow-garmin-writes USER / deny-garmin-writes USER",
+                    "User: {}\nState: {}\nGarmin writes by its model: {}\nProfile database: {}\nGarmin session: {}\n\nIssue keys in Onboarding, step 8. Revoke with: stride users revoke-key KEY_ID\nGrant or deny Garmin writes with: stride users allow-garmin-writes USER / deny-garmin-writes USER",
                     entry.user.name,
                     if entry.user.enabled {
                         "enabled"
@@ -306,7 +306,7 @@ impl App {
             } else {
                 let key = &entry.keys[index - 1];
                 format!(
-                    "Key ID: {}\nState: {}\nExpires: {}\nRevoke with: pace users revoke-key {}",
+                    "Key ID: {}\nState: {}\nExpires: {}\nRevoke with: stride users revoke-key {}",
                     key.id,
                     status(key),
                     date(key.expires_at),
@@ -321,7 +321,7 @@ impl App {
     pub(super) fn connection_details(&mut self, server: &Path) -> Result<()> {
         let settings = Settings::load(server)?;
         let text = format!(
-            "Server config: {}\nHTTP listener: {}\nMCP path: /api/v1/mcp\nHealth path: /api/v1/health (also requires the key)\n\nClient: use Streamable HTTP and Authorization: Bearer <key from step 8>. The client must support manual Bearer headers. OAuth-only clients are not supported.\nUse the listener address locally; wildcard bind addresses are not client destinations. For Internet access use https://YOUR_DOMAIN/api/v1/mcp through a TLS proxy.\n\nEach key's lifetime is chosen when it is issued: 30 days, 6 months or no expiry (100 years). Rotate by issuing a replacement and revoking the old key ID with users revoke-key KEY_ID. users disable USER blocks all of that user's keys.\n\nStart MCP runs in the foreground until Ctrl-C. For continuous Linux operation, use deploy/garmin-pace.service and deploy/config.toml under a dedicated OS account, plus an existing HTTPS proxy (deploy/Caddyfile). Enable the service after local provisioning and check its journal. Keep port 8080 private.\n\nThe wizard does not install services or TLS. Synchronization remains explicit; MCP serves saved data. Read README: Access administration and continuous deployment.",
+            "Server config: {}\nHTTP listener: {}\nMCP path: /api/v1/mcp\nHealth path: /api/v1/health (also requires the key)\n\nClient: use Streamable HTTP and Authorization: Bearer <key from step 8>. The client must support manual Bearer headers. OAuth-only clients are not supported.\nUse the listener address locally; wildcard bind addresses are not client destinations. For Internet access use https://YOUR_DOMAIN/api/v1/mcp through a TLS proxy.\n\nEach key's lifetime is chosen when it is issued: 30 days, 6 months or no expiry (100 years). Rotate by issuing a replacement and revoking the old key ID with users revoke-key KEY_ID. users disable USER blocks all of that user's keys.\n\nStart MCP runs in the foreground until Ctrl-C. For continuous Linux operation, use deploy/garmin-stride.service and deploy/config.toml under a dedicated OS account, plus an existing HTTPS proxy (deploy/Caddyfile). Enable the service after local provisioning and check its journal. Keep port 8080 private.\n\nThe wizard does not install services or TLS. Synchronization remains explicit; MCP serves saved data. Read README: Access administration and continuous deployment.",
             server.display(),
             settings.http.bind
         );

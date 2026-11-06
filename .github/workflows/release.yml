@@ -43,10 +43,10 @@ jobs:
         run: bash deploy/package.sh "$ARCH"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: pace-linux-${{ matrix.arch }}
+          name: stride-linux-${{ matrix.arch }}
           path: |
-            dist/pace-linux-${{ matrix.arch }}.tar.gz
-            dist/pace-linux-${{ matrix.arch }}.tar.gz.sha256
+            dist/stride-linux-${{ matrix.arch }}.tar.gz
+            dist/stride-linux-${{ matrix.arch }}.tar.gz.sha256
           if-no-files-found: error
           retention-days: 7
 
@@ -63,12 +63,12 @@ jobs:
           merge-multiple: true
       - name: Verify archive checksums
         working-directory: dist
-        run: sha256sum --check pace-linux-aarch64.tar.gz.sha256 pace-linux-x86_64.tar.gz.sha256
+        run: sha256sum --check stride-linux-aarch64.tar.gz.sha256 stride-linux-x86_64.tar.gz.sha256
       - name: Create the release with both archives
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --generate-notes \
-            dist/pace-linux-aarch64.tar.gz dist/pace-linux-aarch64.tar.gz.sha256 \
-            dist/pace-linux-x86_64.tar.gz dist/pace-linux-x86_64.tar.gz.sha256
+            dist/stride-linux-aarch64.tar.gz dist/stride-linux-aarch64.tar.gz.sha256 \
+            dist/stride-linux-x86_64.tar.gz dist/stride-linux-x86_64.tar.gz.sha256

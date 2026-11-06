@@ -2,12 +2,12 @@
 # deploy/https.sh adds managed HTTPS to the installer using a dedicated Caddy identity.
 # It exposes configure_https and reports verified or pending access without exposing keys.
 
-HTTPS_CONFIG=/etc/garmin-pace/Caddyfile
-HTTPS_METADATA=/etc/garmin-pace/https.toml
-HTTPS_DIGEST=/etc/garmin-pace/Caddyfile.sha256
-HTTPS_UNIT=/etc/systemd/system/garmin-pace-https.service
-HTTPS_STATE=/var/lib/garmin-pace-https
-# install.sh sets LIB_DIR to <prefix>/lib/garmin-pace before sourcing this file.
+HTTPS_CONFIG=/etc/garmin-stride/Caddyfile
+HTTPS_METADATA=/etc/garmin-stride/https.toml
+HTTPS_DIGEST=/etc/garmin-stride/Caddyfile.sha256
+HTTPS_UNIT=/etc/systemd/system/garmin-stride-https.service
+HTTPS_STATE=/var/lib/garmin-stride-https
+# install.sh sets LIB_DIR to <prefix>/lib/garmin-stride before sourcing this file.
 HTTPS_BINARY=$LIB_DIR/caddy
 HTTPS_URL=
 
@@ -29,22 +29,22 @@ https_domain() {
         if "$BINARY" --config "$CONFIG" installation-https-config --domain "$HTTPS_DOMAIN" >/dev/null; then break; fi
     done
     HTTPS_DOMAIN=${HTTPS_DOMAIN,,}
-    printf 'Pace will run its own HTTPS proxy for https://%s and manage certificates automatically.\n' "$HTTPS_DOMAIN"
+    printf 'Stride will run its own HTTPS proxy for https://%s and manage certificates automatically.\n' "$HTTPS_DOMAIN"
     read -r -p 'DNS and router are ready; configure HTTPS now? [y/N]: ' answer
     [[ "$answer" == y || "$answer" == Y ]]
 }
 
 https_account() {
-    if ! getent passwd pace-https >/dev/null; then
-        getent group pace-https >/dev/null && fail 'A pace-https group already exists without its service account.'
-        root useradd --system --user-group --no-create-home --home-dir "$HTTPS_STATE" --shell /usr/sbin/nologin pace-https
+    if ! getent passwd stride-https >/dev/null; then
+        getent group stride-https >/dev/null && fail 'A stride-https group already exists without its service account.'
+        root useradd --system --user-group --no-create-home --home-dir "$HTTPS_STATE" --shell /usr/sbin/nologin stride-https
     fi
     local name password uid gid description home shell
-    IFS=: read -r name password uid gid description home shell < <(getent passwd pace-https)
+    IFS=: read -r name password uid gid description home shell < <(getent passwd stride-https)
     [[ "$uid" != 0 && "$home" == "$HTTPS_STATE" && "$shell" == /usr/sbin/nologin ]] || fail 'Unexpected existing HTTPS service account.'
-    [[ $(getent group pace-https | cut -d: -f3) == "$gid" ]] || fail 'HTTPS service account group does not match.'
+    [[ $(getent group stride-https | cut -d: -f3) == "$gid" ]] || fail 'HTTPS service account group does not match.'
     if ! root test -e "$HTTPS_STATE" && ! root test -L "$HTTPS_STATE"; then
-        root install -d -o pace-https -g pace-https -m 0700 -- "$HTTPS_STATE"
+        root install -d -o stride-https -g stride-https -m 0700 -- "$HTTPS_STATE"
     fi
     root test -d "$HTTPS_STATE" && ! root test -L "$HTTPS_STATE" || fail 'HTTPS state must be a real private directory.'
     [[ $(root stat -c '%u:%a' -- "$HTTPS_STATE") == "$uid:700" ]] || fail 'HTTPS state has unexpected ownership or permissions.'
@@ -56,7 +56,7 @@ https_assets() {
     ensure_public_directory "$LIB_DIR"
     if [[ -f "$HTTPS_UNIT" ]]; then
         installed=$(sha256sum < "$HTTPS_UNIT")
-        bundled=$(sha256sum < "$BUNDLE/garmin-pace-https.service")
+        bundled=$(sha256sum < "$BUNDLE/garmin-stride-https.service")
         [[ "$installed" == "$bundled" ]] || fail 'The HTTPS service unit was customized. It was preserved.'
     fi
     https_account
@@ -64,7 +64,7 @@ https_assets() {
     root install -o root -g root -m 0755 "$BUNDLE/caddy" "$BINARY_TEMP"
     root mv -T "$BINARY_TEMP" "$HTTPS_BINARY"
     BINARY_TEMP=
-    if [[ ! -e "$HTTPS_UNIT" ]]; then root install -o root -g root -m 0644 "$BUNDLE/garmin-pace-https.service" "$HTTPS_UNIT"; fi
+    if [[ ! -e "$HTTPS_UNIT" ]]; then root install -o root -g root -m 0644 "$BUNDLE/garmin-stride-https.service" "$HTTPS_UNIT"; fi
 }
 
 https_firewall() {
@@ -95,42 +95,42 @@ https_firewall() {
 }
 
 https_prepare_config() {
-    HTTPS_TEMP=$(root mktemp -d /etc/garmin-pace/.https-install.XXXXXXXX)
+    HTTPS_TEMP=$(root mktemp -d /etc/garmin-stride/.https-install.XXXXXXXX)
     root chmod 0755 "$HTTPS_TEMP"
     "$BINARY" --config "$CONFIG" installation-https-config --domain "$HTTPS_DOMAIN" | root tee "$HTTPS_TEMP/Caddyfile" >/dev/null
     root chmod 0644 "$HTTPS_TEMP/Caddyfile"
-    root runuser -u pace-https -- env XDG_DATA_HOME="$HTTPS_STATE" XDG_CONFIG_HOME="$HTTPS_STATE" \
+    root runuser -u stride-https -- env XDG_DATA_HOME="$HTTPS_STATE" XDG_CONFIG_HOME="$HTTPS_STATE" \
         "$HTTPS_BINARY" validate --config "$HTTPS_TEMP/Caddyfile" --adapter caddyfile
     if [[ -f "$HTTPS_CONFIG" ]]; then root cp -- "$HTTPS_CONFIG" "$HTTPS_TEMP/previous"; fi
 }
 
 https_start() {
     local was_active=no
-    if systemctl is-active --quiet garmin-pace-https.service; then was_active=yes; fi
+    if systemctl is-active --quiet garmin-stride-https.service; then was_active=yes; fi
     root mv -T "$HTTPS_TEMP/Caddyfile" "$HTTPS_CONFIG"
     root timeout 45 systemctl daemon-reload
-    if ! { root timeout 45 systemctl restart garmin-pace-https.service && sleep 1 && root systemctl is-active --quiet garmin-pace-https.service; }; then
+    if ! { root timeout 45 systemctl restart garmin-stride-https.service && sleep 1 && root systemctl is-active --quiet garmin-stride-https.service; }; then
         if [[ -f "$HTTPS_TEMP/previous" ]]; then
             root mv -T "$HTTPS_TEMP/previous" "$HTTPS_CONFIG"
         else
             root rm -f -- "$HTTPS_CONFIG"
         fi
         if [[ "$was_active" == yes ]]; then
-            if ! { root timeout 45 systemctl restart garmin-pace-https.service && sleep 1 && root systemctl is-active --quiet garmin-pace-https.service; }; then
+            if ! { root timeout 45 systemctl restart garmin-stride-https.service && sleep 1 && root systemctl is-active --quiet garmin-stride-https.service; }; then
                 printf 'Previous HTTPS configuration could not be restarted; inspect its journal.\n' >&2
             fi
         else
-            root timeout 25 systemctl stop garmin-pace-https.service
+            root timeout 25 systemctl stop garmin-stride-https.service
         fi
-        fail 'HTTPS could not start. Another web server may own ports 80/443. Existing sites were not stopped. Inspect: journalctl -u garmin-pace-https.service'
+        fail 'HTTPS could not start. Another web server may own ports 80/443. Existing sites were not stopped. Inspect: journalctl -u garmin-stride-https.service'
     fi
     printf 'domain = "%s"\n' "$HTTPS_DOMAIN" | root tee "$HTTPS_TEMP/https.toml" >/dev/null
     sha256sum "$HTTPS_CONFIG" | root tee "$HTTPS_TEMP/Caddyfile.sha256" >/dev/null
     root chmod 0644 "$HTTPS_TEMP/https.toml" "$HTTPS_TEMP/Caddyfile.sha256"
     root mv -T "$HTTPS_TEMP/https.toml" "$HTTPS_METADATA"
     root mv -T "$HTTPS_TEMP/Caddyfile.sha256" "$HTTPS_DIGEST"
-    root timeout 45 systemctl enable garmin-pace-https.service
-    root systemctl is-active --quiet garmin-pace-https.service
+    root timeout 45 systemctl enable garmin-stride-https.service
+    root systemctl is-active --quiet garmin-stride-https.service
 }
 
 configure_https() {
@@ -139,8 +139,8 @@ configure_https() {
         read -r -p 'Configure Internet access with HTTPS? [y/N]: ' answer
         [[ "$answer" == y || "$answer" == Y ]] || return 0
     fi
-    "$BINARY" installation-https-config --help >/dev/null 2>&1 || fail 'Run ./install.sh once to update Pace before configuring HTTPS.'
-    root runuser -u garmin-pace -- "$BINARY" --config "$CONFIG" installation-check --profile "$PROFILE_CONFIG"
+    "$BINARY" installation-https-config --help >/dev/null 2>&1 || fail 'Run ./install.sh once to update Stride before configuring HTTPS.'
+    root runuser -u garmin-stride -- "$BINARY" --config "$CONFIG" installation-check --profile "$PROFILE_CONFIG"
     if ! https_domain; then printf 'HTTPS setup skipped; existing services are unchanged.\n'; return; fi
     https_assets
     https_prepare_config
@@ -148,7 +148,7 @@ configure_https() {
     https_start
     HTTPS_URL="https://$HTTPS_DOMAIN/api/v1/mcp"
     printf '\nWaiting for a trusted certificate and checking MCP access...\n'
-    if root runuser -u garmin-pace -- "$BINARY" --config "$CONFIG" installation-check --profile "$PROFILE_CONFIG" --https-domain "$HTTPS_DOMAIN"; then
+    if root runuser -u garmin-stride -- "$BINARY" --config "$CONFIG" installation-check --profile "$PROFILE_CONFIG" --https-domain "$HTTPS_DOMAIN"; then
         printf '\nHTTPS verified locally. MCP URL: %s\nTest this URL from another network before sharing it.\n' "$HTTPS_URL"
     else
         printf '\nHTTPS is configured but NOT VERIFIED. Certificate issuance or the DNS path may still be pending.\nCaddy remains enabled and retries automatically. Check DNS, TCP 80/443, and its journal.\nRun ./install.sh --https to retry the checks. Intended URL: %s\n' "$HTTPS_URL" >&2

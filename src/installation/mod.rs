@@ -13,7 +13,11 @@ pub use supervisor::{
     start_service,
 };
 
-use crate::{access::key_digest, config::Settings, private_fs};
+use crate::{
+    access::{KEY_LENGTH, key_digest},
+    config::Settings,
+    private_fs,
+};
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -72,10 +76,10 @@ pub fn handoff_key(source: &Path, destination: &Path) -> Result<()> {
 fn read_key(path: &Path) -> Result<String> {
     let mut key = String::new();
     private_fs::open(path, false, false)?
-        .take(50)
+        .take((KEY_LENGTH + 1) as u64)
         .read_to_string(&mut key)?;
     ensure!(
-        key.len() == 49 && key.ends_with('\n'),
+        key.len() == KEY_LENGTH + 1 && key.ends_with('\n'),
         "invalid private key file"
     );
     let key = key.strip_suffix('\n').context("invalid private key file")?;
@@ -116,9 +120,9 @@ pub fn validate_listener(settings: &Settings) -> Result<()> {
 }
 
 /// Where deploy/https.sh records the configured domain; keep in sync with its HTTPS_METADATA.
-pub const HTTPS_METADATA: &str = "/etc/garmin-pace/https.toml";
+pub const HTTPS_METADATA: &str = "/etc/garmin-stride/https.toml";
 /// The server configuration of a system install; keep in sync with install.sh's CONFIG.
-pub const SYSTEM_CONFIG: &str = "/etc/garmin-pace/config.toml";
+pub const SYSTEM_CONFIG: &str = "/etc/garmin-stride/config.toml";
 
 /// The domain the installer's HTTPS setup recorded, or `None` when it never completed.
 pub fn installed_https_domain() -> Result<Option<PublicDomain>> {

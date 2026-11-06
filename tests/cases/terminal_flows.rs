@@ -5,7 +5,7 @@
 use super::{Session, confirm, scroll_until};
 use crate::common::Fixture;
 use anyhow::{Result, ensure};
-use garmin_pace::workouts::{
+use garmin_stride::workouts::{
     DraftState, SqliteWorkouts, WorkoutService, document::WorkoutDocument,
 };
 use std::sync::Arc;

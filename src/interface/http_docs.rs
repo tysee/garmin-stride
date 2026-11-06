@@ -54,9 +54,9 @@ fn contract() -> Value {
     json!({
         "openapi": "3.0.3",
         "info": {
-            "title": "Garmin Pace HTTP API",
+            "title": "Garmin Stride HTTP API",
             "version": env!("CARGO_PKG_VERSION"),
-            "description": "Local Garmin snapshots over authenticated MCP. Authorize with an administrator-issued per-user key. Each request uses that user's profile; keys are checked on every call. MCP tools read local data and may write local workout drafts/proposals; the Garmin save, reconcile, delivery and device-list tools succeed only for users granted with `pace users allow-garmin-writes` and a quoted user instruction. User administration and Garmin synchronization are CLI-only."
+            "description": "Local Garmin snapshots over authenticated MCP. Authorize with an administrator-issued per-user key. Each request uses that user's profile; keys are checked on every call. MCP tools read local data and may write local workout drafts/proposals; the Garmin save, reconcile, delivery and device-list tools succeed only for users granted with `stride users allow-garmin-writes` and a quoted user instruction. User administration and Garmin synchronization are CLI-only."
         },
         "servers": [{"url": "/"}],
         "security": [{"bearerAuth": []}],
@@ -108,7 +108,7 @@ fn mcp_responses() -> Value {
 
 fn components() -> Value {
     json!({
-        "securitySchemes":{"bearerAuth":{"type":"http","scheme":"bearer","description":"Use the key file issued by pace users issue-key. Paste only the key, without the Bearer prefix. Keys must be active and unexpired; revoke/disable takes effect on the next request."}},
+        "securitySchemes":{"bearerAuth":{"type":"http","scheme":"bearer","description":"Use the key file issued by stride users issue-key. Paste only the key, without the Bearer prefix. Keys must be active and unexpired; revoke/disable takes effect on the next request."}},
         "schemas": {
             "McpMessage":{"type":"object","required":["jsonrpc","method"],"properties":{
                 "jsonrpc":{"type":"string","enum":["2.0"]},

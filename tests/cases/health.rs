@@ -6,7 +6,7 @@ use crate::{
     garmin::{Server, configure, configure_connect},
 };
 use anyhow::{Context, Result};
-use garmin_pace::health::{
+use garmin_stride::health::{
     Dataset, Date, DayImport, HealthError, HealthService, HealthSource, Limits, Measurement,
     Metric, Record, Sample, Section, SqliteHealth, Value as Scalar,
 };

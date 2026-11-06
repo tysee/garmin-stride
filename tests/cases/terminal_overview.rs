@@ -8,7 +8,7 @@ use crate::{
     workouts::{candidate, seed_draft},
 };
 use anyhow::{Result, ensure};
-use garmin_pace::workouts::{
+use garmin_stride::workouts::{
     DraftState, LibraryWorkout, SqliteWorkouts, Workout, WorkoutRepository, WorkoutService,
     document::WorkoutDocument,
 };
@@ -60,7 +60,7 @@ fn summary_and_change_review_work_in_cli_and_small_terminal() -> Result<()> {
         definition("Changed", 600.0)?,
         Some((777, "source-revision".into())),
     )?;
-    let output = Command::new(env!("CARGO_BIN_EXE_pace"))
+    let output = Command::new(env!("CARGO_BIN_EXE_stride"))
         .arg("--config")
         .arg(&f.config)
         .args(["workout", "review", "--id", "1"])
@@ -76,7 +76,7 @@ fn summary_and_change_review_work_in_cli_and_small_terminal() -> Result<()> {
     assert!(text.contains("Timed steps: 1500 sec (25.0 min)"));
     assert!(text.contains("BEFORE") && text.contains("AFTER"));
     let mut ui = Session::start_args(&f, 32, 10, &["ui", "--compact"])?;
-    ui.until("Pace / Actions")?;
+    ui.until("Stride / Actions")?;
     ui.search("Workout drafts")?;
     ui.until("Refresh drafts")?;
     ui.search("Changed")?;
@@ -99,7 +99,7 @@ fn freshness_does_not_present_empty_health_as_measured() -> Result<()> {
     f.seed()?;
     crate::health::seed_health(&f, 4321.0)?;
     let mut ui = Session::start_args(&f, 100, 28, &[])?;
-    ui.until("Pace / Actions")?;
+    ui.until("Stride / Actions")?;
     ui.search("Health")?;
     ui.until("Import health")?;
     ui.search("Data freshness")?;
@@ -131,9 +131,9 @@ fn date_preset_cancel_never_imports_and_confirm_imports_exact_dates() -> Result<
     ui.until("Review action")?;
     ui.until(&format!("{today} to {today}"))?;
     ui.send(b"\x1b")?;
-    ui.until("Pace / Actions")?;
-    let history = garmin_pace::history::HistoryService::new(
-        Arc::new(garmin_pace::history::SqliteHistory::open(
+    ui.until("Stride / Actions")?;
+    let history = garmin_stride::history::HistoryService::new(
+        Arc::new(garmin_stride::history::SqliteHistory::open(
             f.settings.database.clone(),
         )?),
         100,
@@ -157,7 +157,7 @@ fn health_presets_show_exact_dates_and_leave_drafts_unchanged_on_cancel() -> Res
     f.init()?;
     seed_draft(&f)?;
     let mut ui = Session::start_args(&f, 40, 15, &["ui", "--compact"])?;
-    ui.until("Pace / Actions")?;
+    ui.until("Stride / Actions")?;
     ui.search("Health")?;
     ui.until("> Import health")?;
     ui.send(b"\r")?;
@@ -229,7 +229,7 @@ fn actions_retry_keeps_the_failed_non_secret_input() -> Result<()> {
     let f = Fixture::new()?;
     f.init()?;
     let mut ui = Session::start_args(&f, 40, 15, &["ui", "--compact"])?;
-    ui.until("Pace / Actions")?;
+    ui.until("Stride / Actions")?;
     ui.search("Sync activities")?;
     ui.until("> Recent activities")?;
     ui.send(b"\r")?;
@@ -237,7 +237,7 @@ fn actions_retry_keeps_the_failed_non_secret_input() -> Result<()> {
     ui.send(b"999\r")?;
     ui.until("Action failed")?;
     ui.send(b"\r")?;
-    ui.until("Pace / Actions")?;
+    ui.until("Stride / Actions")?;
     ui.send(b"\r")?;
     ui.until("> Recent activities")?;
     ui.send(b"\r")?;
@@ -251,8 +251,8 @@ fn startup_opens_actions_directly_and_escape_exits() -> Result<()> {
         let f = Fixture::new()?;
         f.init()?;
         let mut ui = Session::start_args(&f, width, height, &args)?;
-        ui.until("Pace / Actions")?;
-        assert!(!ui.saw("Pace / Home"));
+        ui.until("Stride / Actions")?;
+        assert!(!ui.saw("Stride / Home"));
         ui.send(b"\x1b")?;
         ui.finish()?;
     }
@@ -344,15 +344,15 @@ fn every_action_explains_its_state_and_next_step_without_running_it() -> Result<
         ("Exit", "Close this menu", "Return to the terminal"),
     ];
     let mut ui = Session::start_args(&f, 100, 40, &[])?;
-    ui.until("Pace / Actions")?;
+    ui.until("Stride / Actions")?;
     for (label, state, next) in cases {
         ui.send(b"\t")?;
-        ui.until("Pace / Details")?;
+        ui.until("Stride / Details")?;
         ui.until(label)?;
         ui.until(state)?;
         ui.until(&format!("Next: {next}"))?;
         ui.send(b"\x1b")?;
-        ui.until("Pace / Actions")?;
+        ui.until("Stride / Actions")?;
         ui.send(b"\x1b[B")?;
     }
     ui.exit()
@@ -362,7 +362,7 @@ fn every_action_explains_its_state_and_next_step_without_running_it() -> Result<
 fn actions_refresh_draft_counts_after_return_and_never_create_missing_storage() -> Result<()> {
     let f = Fixture::new()?;
     let mut ui = Session::start_args(&f, 100, 40, &[])?;
-    ui.until("Pace / Actions")?;
+    ui.until("Stride / Actions")?;
     ui.until("Database not initialized yet")?;
     assert!(!f.settings.database.path.exists());
     ui.exit()?;
@@ -370,10 +370,10 @@ fn actions_refresh_draft_counts_after_return_and_never_create_missing_storage() 
     let mut ui = Session::start_args(&f, 100, 40, &[])?;
     ui.until("0 unresolved saves | 0 unsaved drafts")?;
     ui.search("Status")?;
-    ui.until("Pace / Status")?;
+    ui.until("Stride / Status")?;
     seed_draft(&f)?;
     ui.send(b"\x1b")?;
-    ui.until("Pace / Actions")?;
+    ui.until("Stride / Actions")?;
     ui.send(b"\x1b")?;
     ui.until("0 unresolved saves | 1 unsaved drafts")?;
     ui.search("Workout drafts")?;

@@ -28,7 +28,7 @@ request_timeout_seconds = 60
 blocking_threads = 2
 log_level = "info"
 # stdio only: let the local MCP client call the Garmin write tools on your explicit
-# instruction. HTTP users are granted with `pace users allow-garmin-writes USER`.
+# instruction. HTTP users are granted with `stride users allow-garmin-writes USER`.
 stdio_garmin_writes = false
 
 [garmin]

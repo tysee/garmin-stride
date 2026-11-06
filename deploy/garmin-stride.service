@@ -1,22 +1,22 @@
-# deploy/garmin-pace.service supervises the Linux MCP process under a dedicated OS user.
-# install.sh places the binary under /usr/local/lib/garmin-pace and the pace launcher on PATH.
+# deploy/garmin-stride.service supervises the Linux MCP process under a dedicated OS user.
+# install.sh places the binary under /usr/local/lib/garmin-stride and the stride launcher on PATH.
 [Unit]
-Description=Garmin Pace authenticated MCP
+Description=Garmin Stride authenticated MCP
 After=network.target
 StartLimitIntervalSec=60
 StartLimitBurst=5
 
 [Service]
 Type=simple
-User=garmin-pace
-Group=garmin-pace
-ExecStart=/usr/local/lib/garmin-pace/pace --config /etc/garmin-pace/config.toml serve --transport http
+User=garmin-stride
+Group=garmin-stride
+ExecStart=/usr/local/lib/garmin-stride/stride --config /etc/garmin-stride/config.toml serve --transport http
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=35
-StateDirectory=garmin-pace
+StateDirectory=garmin-stride
 StateDirectoryMode=0700
-WorkingDirectory=/var/lib/garmin-pace
+WorkingDirectory=/var/lib/garmin-stride
 UMask=0077
 NoNewPrivileges=true
 ProtectSystem=strict
@@ -32,7 +32,7 @@ LockPersonality=true
 CapabilityBoundingSet=
 AmbientCapabilities=
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-ReadWritePaths=/var/lib/garmin-pace
+ReadWritePaths=/var/lib/garmin-stride
 LimitCORE=0
 LimitNOFILE=256
 TasksMax=64

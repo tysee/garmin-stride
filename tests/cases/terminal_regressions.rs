@@ -35,7 +35,7 @@ fn zero_width_resize_does_not_crash_the_menu() -> Result<()> {
 
 #[test]
 fn wide_review_preserves_text_beyond_the_frame_width() -> Result<()> {
-    use garmin_pace::workouts::{SqliteWorkouts, WorkoutService, document::WorkoutDocument};
+    use garmin_stride::workouts::{SqliteWorkouts, WorkoutService, document::WorkoutDocument};
     use std::sync::Arc;
     let fixture = Fixture::new()?;
     fixture.init()?;
@@ -102,7 +102,7 @@ fn review_cannot_advance_while_the_window_is_too_small() -> Result<()> {
     // A key must be processed at the small size before the window is restored.
     std::thread::sleep(std::time::Duration::from_millis(200));
     resize(&mut session, 80, 24)?;
-    session.until("Pace /")?;
+    session.until("Stride /")?;
     session.until("Enter next  Esc cancel")?;
     ensure!(!session.saw("> Cancel"), "an invisible review was accepted");
     session.exit()

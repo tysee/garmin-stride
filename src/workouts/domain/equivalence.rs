@@ -50,7 +50,7 @@ fn target(a: &Target, b: &Target) -> bool {
                 maximum: bmax,
             },
         ) => {
-            // Pace is stored as speed rounded to four decimal places by Garmin's designer.
+            // Stride is stored as speed rounded to four decimal places by Garmin's designer.
             let precision = if a == "pace_seconds_per_km" {
                 0.0001
             } else {

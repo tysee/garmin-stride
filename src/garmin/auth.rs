@@ -62,7 +62,7 @@ impl<'a> AuthHttp<'a> {
     fn body(&self, response: Result<Response, reqwest::Error>, stage: &str) -> Result<Vec<u8>> {
         let response = response.map_err(|error| {
             anyhow::anyhow!(
-                "Garmin authentication network failure during {stage}: {}; retry login explicitly after `pace doctor` passes",
+                "Garmin authentication network failure during {stage}: {}; retry login explicitly after `stride doctor` passes",
                 super::http::describe(&error, self.network)
             )
         })?;

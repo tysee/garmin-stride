@@ -1,9 +1,9 @@
-# Pace usage guides
+# Stride usage guides
 
 [Project home](../README.md)
 
-Choose a workflow. All commands use the same `pace` binary and profile; examples
-assume it is on PATH and `GARMIN_PACE_CONFIG` is set, or that you pass `--config`.
+Choose a workflow. All commands use the same `stride` binary and profile; examples
+assume it is on PATH and `GARMIN_STRIDE_CONFIG` is set, or that you pass `--config`.
 Dates and uppercase ID/revision placeholders must be replaced with your own values.
 
 | I want to… | Guide |
@@ -14,7 +14,7 @@ Dates and uppercase ID/revision placeholders must be replaced with your own valu
 | Connect an AI assistant locally or remotely | [MCP setup and permissions](assistant.md) |
 | Draft a workout, review it and send it to a watch | [Workouts and benchmarks](workouts.md) |
 | Inspect my Coach week and approve specific adjustments | [Coach workflow](coach.md) |
-| Run Pace in Podman or on a Raspberry Pi | [Deployment](deployment.md) |
+| Run Stride in Podman or on a Raspberry Pi | [Deployment](deployment.md) |
 | Manage configuration, private storage and upgrades | [Configuration and privacy](configuration.md) |
 
 ## What changes where?
@@ -26,7 +26,8 @@ Dates and uppercase ID/revision placeholders must be replaced with your own valu
 | Create or revise a draft | Changes a local proposal only |
 | Save | Writes the reviewed revision to Garmin and verifies it by reading back |
 | Send | Requests delivery; acceptance does not confirm watch receipt |
+| Reschedule | Moves one Coach session in Garmin after journaling it, then reads the entry back |
 
-Pace runs no model internally. Your connected assistant proposes changes; Pace
+Stride runs no model internally. Your connected assistant proposes changes; Stride
 stores drafts, checks revisions and handles explicit Garmin operations. Agent
 network tools require an administrator grant and an explicit user request.

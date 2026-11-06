@@ -4,7 +4,7 @@
 use super::Session;
 use crate::common::{Fixture, Process};
 use anyhow::{Context, Result, ensure};
-use garmin_pace::{
+use garmin_stride::{
     access::{AccessService, SqliteAccess, User},
     installation,
 };
@@ -54,7 +54,7 @@ fn finish(session: &mut Session, success: bool) -> Result<()> {
 }
 
 fn skip_garmin(session: &mut Session) -> Result<()> {
-    session.until("Pace / Easy setup")?;
+    session.until("Stride / Easy setup")?;
     session.send(b"\r")?;
     session.until("Connect Garmin now")?;
     session.send(b"\x1b[B\r")?;
@@ -113,7 +113,7 @@ fn batch_setup_provisions_profile_key_and_receipt_without_a_terminal() -> Result
     let expires = summary["expires_at_unix"].as_i64().context("expiry")?;
     assert!(expires > chrono::Utc::now().timestamp() + 99 * 365 * 86400);
     let token = fs::read_to_string(&handoff)?;
-    assert_eq!(token.len(), 49);
+    assert_eq!(token.len(), 51);
     assert!(!stdout.contains(token.trim()));
     assert_eq!(fs::metadata(&handoff)?.permissions().mode() & 0o077, 0);
     assert!(profile.directory.path().join("installation.json").exists());
@@ -292,7 +292,7 @@ fn resumed_registration_refuses_a_different_or_disabled_profile() -> Result<()> 
 #[test]
 fn private_key_handoff_refuses_overwrite_links_and_public_files() -> Result<()> {
     let fixture = Fixture::new()?;
-    let key = garmin_pace::access::NewKey::generate()?;
+    let key = garmin_stride::access::NewKey::generate()?;
     let source = fixture.directory.path().join("source.key");
     key.write(&source)?;
     let destination = fixture.directory.path().join("destination.key");
@@ -357,9 +357,9 @@ fn quick_setup_checks_garmin_and_downloads_without_requesting_paths() -> Result<
     session.send(b"\r")?;
     finish(&mut session, true)?;
     garmin.finish()?;
-    let saved = garmin_pace::secrets::profile_key_path(&profile.settings.database.path)?;
+    let saved = garmin_stride::secrets::profile_key_path(&profile.settings.database.path)?;
     assert_eq!(
-        garmin_pace::secrets::Secrets::load(Some(&saved))?.require("GARMIN_PERSONAL_API_KEY")?,
+        garmin_stride::secrets::Secrets::load(Some(&saved))?.require("GARMIN_PERSONAL_API_KEY")?,
         "fixture-api-key-never-real"
     );
     let db = rusqlite::Connection::open(&profile.settings.database.path)?;

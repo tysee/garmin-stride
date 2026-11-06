@@ -4,12 +4,12 @@
 # Interactive runs keep the easy wizard; --yes answers everything from flags for agents.
 # Both modes preserve existing state, verify authenticated MCP access and never download anything.
 set -euo pipefail
-# The caller's PATH only decides how the final message names the pace command.
+# The caller's PATH only decides how the final message names the stride command.
 CALLER_PATH=$PATH
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 umask 077
 
-SERVICE_USER=garmin-pace
+SERVICE_USER=garmin-stride
 BUNDLE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 MODE=
 PREFIX=
@@ -89,9 +89,9 @@ preflight() {
     for tool in getent install mktemp sha256sum timeout stat cp mv cut id chmod chown rm rmdir mkdir tee env sleep sed; do
         command -v "$tool" >/dev/null || fail "Required OS command is missing: $tool. No packages were installed."
     done
-    [[ -x "$BUNDLE/pace" ]] || fail 'Extract the complete release archive first.'
+    [[ -x "$BUNDLE/stride" ]] || fail 'Extract the complete release archive first.'
     (cd -- "$BUNDLE" && sha256sum --check --status SHA256SUMS) || fail 'Release files are incomplete or damaged. Extract a fresh trusted archive.'
-    "$BUNDLE/pace" --version || fail "This release does not run here: use the pace-linux-$(uname -m) archive on glibc 2.36 or newer (Debian or Raspberry Pi OS Bookworm)."
+    "$BUNDLE/stride" --version || fail "This release does not run here: use the stride-linux-$(uname -m) archive on glibc 2.36 or newer (Debian or Raspberry Pi OS Bookworm)."
 }
 
 # System mode needs systemd, the account tools and root; an agent cannot type a sudo password.
@@ -113,46 +113,46 @@ escalate() { if [[ "$MODE" == system ]] && (( EUID != 0 )); then sudo -v; fi; }
 
 # --- paths ---
 
-# PREFIX holds bin/pace and lib/garmin-pace/; DATA holds the server registry and profiles.
+# PREFIX holds bin/stride and lib/garmin-stride/; DATA holds the server registry and profiles.
 resolve_paths() {
     if [[ "$MODE" == system ]]; then
         PREFIX=${PREFIX:-/usr/local}
-        DATA=${DATA:-/var/lib/garmin-pace}
-        CONFIG=/etc/garmin-pace/config.toml
-        INSTALL_ENV=/etc/garmin-pace/install.env
-        UNIT=/etc/systemd/system/garmin-pace.service
+        DATA=${DATA:-/var/lib/garmin-stride}
+        CONFIG=/etc/garmin-stride/config.toml
+        INSTALL_ENV=/etc/garmin-stride/install.env
+        UNIT=/etc/systemd/system/garmin-stride.service
         OWNER_UID=0
         case "$DATA" in
             /home/*|/root|/root/*) fail 'The system service cannot reach home directories (ProtectHome). Choose a data directory outside /home and /root.' ;;
         esac
     else
         PREFIX=${PREFIX:-$HOME/.local}
-        DATA=${DATA:-$HOME/.local/share/garmin-pace}
+        DATA=${DATA:-$HOME/.local/share/garmin-stride}
         CONFIG=$DATA/config.toml
         INSTALL_ENV=$DATA/install.env
         UNIT=
         OWNER_UID=$EUID
     fi
     STATE=$DATA
-    LIB_DIR=$PREFIX/lib/garmin-pace
-    BINARY=$LIB_DIR/pace
-    LAUNCHER=$PREFIX/bin/pace
+    LIB_DIR=$PREFIX/lib/garmin-stride
+    BINARY=$LIB_DIR/stride
+    LAUNCHER=$PREFIX/bin/stride
     PROFILE_CONFIG=$STATE/profiles/$PROFILE/config.toml
 }
 
 # An earlier install fixes mode and directories; later runs must not silently move them.
 load_install_env() {
     local file
-    for file in /etc/garmin-pace/install.env "${DATA:-$HOME/.local/share/garmin-pace}/install.env"; do
+    for file in /etc/garmin-stride/install.env "${DATA:-$HOME/.local/share/garmin-stride}/install.env"; do
         [[ -f "$file" ]] || continue
         local saved_mode saved_prefix saved_data
-        saved_mode=$(sed -n 's/^PACE_MODE=//p' "$file")
-        saved_prefix=$(sed -n 's/^PACE_PREFIX=//p' "$file")
-        saved_data=$(sed -n 's/^PACE_DATA=//p' "$file")
+        saved_mode=$(sed -n 's/^STRIDE_MODE=//p' "$file")
+        saved_prefix=$(sed -n 's/^STRIDE_PREFIX=//p' "$file")
+        saved_data=$(sed -n 's/^STRIDE_DATA=//p' "$file")
         [[ -n "$saved_mode" && -n "$saved_prefix" && -n "$saved_data" ]] || fail "Unreadable installation record: $file"
         [[ -z "$MODE" || "$MODE" == "$saved_mode" ]] || fail "This device already has a $saved_mode install ($file); --$MODE would create a second one."
-        [[ -z "$PREFIX" || "$PREFIX" == "$saved_prefix" ]] || fail "Pace is already installed under $saved_prefix ($file); --prefix cannot move it."
-        [[ -z "$DATA" || "$DATA" == "$saved_data" ]] || fail "Pace data already lives in $saved_data ($file); --data cannot move it."
+        [[ -z "$PREFIX" || "$PREFIX" == "$saved_prefix" ]] || fail "Stride is already installed under $saved_prefix ($file); --prefix cannot move it."
+        [[ -z "$DATA" || "$DATA" == "$saved_data" ]] || fail "Stride data already lives in $saved_data ($file); --data cannot move it."
         MODE=$saved_mode
         PREFIX=$saved_prefix
         DATA=$saved_data
@@ -165,7 +165,7 @@ load_install_env() {
 save_install_env() {
     local temp
     temp=$(root mktemp "$(dirname -- "$INSTALL_ENV")/.install.XXXXXXXX")
-    printf 'PACE_MODE=%s\nPACE_PREFIX=%s\nPACE_DATA=%s\n' "$MODE" "$PREFIX" "$DATA" | root tee -- "$temp" >/dev/null
+    printf 'STRIDE_MODE=%s\nSTRIDE_PREFIX=%s\nSTRIDE_DATA=%s\n' "$MODE" "$PREFIX" "$DATA" | root tee -- "$temp" >/dev/null
     root chmod 0644 -- "$temp"
     root mv -T -- "$temp" "$INSTALL_ENV"
 }
@@ -227,12 +227,12 @@ prepare_account() {
         SERVICE_GID=$(id -g)
     else
         if ! getent passwd "$SERVICE_USER" >/dev/null; then
-            getent group "$SERVICE_USER" >/dev/null && fail 'A garmin-pace group already exists without its service account. Ask an administrator to review it.'
+            getent group "$SERVICE_USER" >/dev/null && fail 'A garmin-stride group already exists without its service account. Ask an administrator to review it.'
             root useradd --system --user-group --no-create-home --home-dir "$STATE" --shell /usr/sbin/nologin "$SERVICE_USER"
         fi
         local name password description home shell
         IFS=: read -r name password SERVICE_UID SERVICE_GID description home shell < <(getent passwd "$SERVICE_USER")
-        [[ "$SERVICE_UID" != 0 && "$home" == "$STATE" && "$shell" == /usr/sbin/nologin ]] || fail 'Existing garmin-pace account does not match the dedicated service account or data directory.'
+        [[ "$SERVICE_UID" != 0 && "$home" == "$STATE" && "$shell" == /usr/sbin/nologin ]] || fail 'Existing garmin-stride account does not match the dedicated service account or data directory.'
         [[ $(getent group "$SERVICE_USER" | cut -d: -f3) == "$SERVICE_GID" ]] || fail 'Service account group does not match.'
     fi
     local parent
@@ -248,18 +248,18 @@ prepare_account() {
 # The bundled unit is written for the default paths; rewrite them for this install.
 generated_unit() {
     local unit
-    unit=$(sed -e "s#/usr/local/lib/garmin-pace/pace#$BINARY#g" -e "s#/var/lib/garmin-pace#$DATA#g" -- "$BUNDLE/garmin-pace.service")
-    if [[ "$DATA" != /var/lib/garmin-pace ]]; then unit=$(printf '%s\n' "$unit" | sed '/^StateDirectory/d'); fi
+    unit=$(sed -e "s#/usr/local/lib/garmin-stride/stride#$BINARY#g" -e "s#/var/lib/garmin-stride#$DATA#g" -- "$BUNDLE/garmin-stride.service")
+    if [[ "$DATA" != /var/lib/garmin-stride ]]; then unit=$(printf '%s\n' "$unit" | sed '/^StateDirectory/d'); fi
     printf '%s\n' "$unit"
 }
 
 generated_config() {
-    sed -e "s#/var/lib/garmin-pace#$DATA#g" -- "$BUNDLE/config.toml"
+    sed -e "s#/var/lib/garmin-stride#$DATA#g" -- "$BUNDLE/config.toml"
 }
 
 install_file() {
     local destination=$1 mode=$2
-    BINARY_TEMP=$(root mktemp "$(dirname -- "$destination")/.pace-install.XXXXXXXX")
+    BINARY_TEMP=$(root mktemp "$(dirname -- "$destination")/.stride-install.XXXXXXXX")
     root tee -- "$BINARY_TEMP" >/dev/null
     root chmod "$mode" -- "$BINARY_TEMP"
     root mv -T -- "$BINARY_TEMP" "$destination"
@@ -267,7 +267,7 @@ install_file() {
 }
 
 # The PATH command runs every command, the menu included, against the last installed profile;
-# --config or GARMIN_PACE_CONFIG still selects another. System mode runs as the service account.
+# --config or GARMIN_STRIDE_CONFIG still selects another. System mode runs as the service account.
 install_launcher() {
     local run
     if [[ "$MODE" == user ]]; then
@@ -275,13 +275,13 @@ install_launcher() {
     else
         run="[[ \$(id -un) == $SERVICE_USER ]] && exec $BINARY \"\$@\"
 pty=; [[ -t 0 && -t 1 ]] && pty=--pty
-if (( EUID == 0 )); then exec runuser \$pty -u $SERVICE_USER -- env GARMIN_PACE_CONFIG=\"\$GARMIN_PACE_CONFIG\" $BINARY \"\$@\"; fi
+if (( EUID == 0 )); then exec runuser \$pty -u $SERVICE_USER -- env GARMIN_STRIDE_CONFIG=\"\$GARMIN_STRIDE_CONFIG\" $BINARY \"\$@\"; fi
 prompt=; [[ -t 0 ]] || prompt=-n
-exec sudo \$prompt runuser \$pty -u $SERVICE_USER -- env GARMIN_PACE_CONFIG=\"\$GARMIN_PACE_CONFIG\" $BINARY \"\$@\""
+exec sudo \$prompt runuser \$pty -u $SERVICE_USER -- env GARMIN_STRIDE_CONFIG=\"\$GARMIN_STRIDE_CONFIG\" $BINARY \"\$@\""
     fi
     printf '%s\n' '#!/bin/bash' \
-        "# $LAUNCHER runs Pace for the installed profile; --config or GARMIN_PACE_CONFIG selects another." \
-        "export GARMIN_PACE_CONFIG=\"\${GARMIN_PACE_CONFIG:-$PROFILE_CONFIG}\"" \
+        "# $LAUNCHER runs Stride for the installed profile; --config or GARMIN_STRIDE_CONFIG selects another." \
+        "export GARMIN_STRIDE_CONFIG=\"\${GARMIN_STRIDE_CONFIG:-$PROFILE_CONFIG}\"" \
         "$run" | install_file "$LAUNCHER" 0755
 }
 
@@ -296,11 +296,11 @@ install_release() {
     if [[ -n "$UNIT" && -f "$UNIT" ]]; then
         [[ $(generated_unit | sha256sum) == $(sha256sum < "$UNIT") ]] || fail 'The installed service was customized. It was preserved; ask an administrator to review the service update.'
     fi
-    "$BUNDLE/pace" --config "$CONFIG" config check >/dev/null 2>&1 || {
+    "$BUNDLE/stride" --config "$CONFIG" config check >/dev/null 2>&1 || {
         [[ ! -e "$CONFIG" ]] || fail 'Existing configuration is invalid. It was preserved; ask an administrator to review it.'
     }
     prepare_account
-    install_public -m 0755 -- "$BUNDLE/pace" "$BINARY.new"
+    install_public -m 0755 -- "$BUNDLE/stride" "$BINARY.new"
     BINARY_TEMP=$BINARY.new
     root mv -T -- "$BINARY_TEMP" "$BINARY"
     BINARY_TEMP=
@@ -313,7 +313,7 @@ install_release() {
 # --- profile, service and delivery ---
 
 configure_profile() {
-    HANDOFF_DIR=$(root mktemp -d /tmp/pace-install.XXXXXXXX)
+    HANDOFF_DIR=$(root mktemp -d /tmp/stride-install.XXXXXXXX)
     # A root-owned parent prevents the service account from swapping the handoff file.
     root chmod 0711 -- "$HANDOFF_DIR"
     if [[ "$MODE" == user ]]; then install -m 0600 /dev/null "$HANDOFF_DIR/key"; else root install -o "$SERVICE_UID" -g "$SERVICE_GID" -m 0600 /dev/null "$HANDOFF_DIR/key"; fi
@@ -337,11 +337,11 @@ start_service() {
         return
     fi
     root timeout 45 systemctl daemon-reload
-    root timeout 45 systemctl restart garmin-pace.service
-    service "$BINARY" --config "$CONFIG" installation-check --profile "$PROFILE_CONFIG" || fail 'The service did not pass its access check. Autostart was not enabled by this run. Ask an administrator to inspect: journalctl -u garmin-pace.service'
-    root timeout 45 systemctl enable garmin-pace.service
-    root systemctl is-active --quiet garmin-pace.service
-    root systemctl is-enabled --quiet garmin-pace.service
+    root timeout 45 systemctl restart garmin-stride.service
+    service "$BINARY" --config "$CONFIG" installation-check --profile "$PROFILE_CONFIG" || fail 'The service did not pass its access check. Autostart was not enabled by this run. Ask an administrator to inspect: journalctl -u garmin-stride.service'
+    root timeout 45 systemctl enable garmin-stride.service
+    root systemctl is-active --quiet garmin-stride.service
+    root systemctl is-enabled --quiet garmin-stride.service
 }
 
 # Even when invoked with sudo, deliver as the original administrator, not root.
@@ -362,32 +362,32 @@ deliver_key() {
     delivery_gid=$(id -g "$DELIVERY_USER")
     delivery_home=$(getent passwd "$DELIVERY_UID" | cut -d: -f6)
     [[ -d "$delivery_home" && ! -L "$delivery_home" ]] || fail 'Cannot locate your home folder. Your key remains in the private profile.'
-    delivery_dir="$delivery_home/Pace"
+    delivery_dir="$delivery_home/Stride"
     if ! owner test -e "$delivery_dir" && ! owner test -L "$delivery_dir"; then owner mkdir -m 0700 -- "$delivery_dir"; fi
-    owner test -d "$delivery_dir" && ! owner test -L "$delivery_dir" || fail 'The Pace folder must be a real private directory.'
-    [[ $(owner stat -c '%u:%a' -- "$delivery_dir") == "$DELIVERY_UID:700" ]] || fail 'Your Pace folder must be private (0700). The key remains in the profile.'
+    owner test -d "$delivery_dir" && ! owner test -L "$delivery_dir" || fail 'The Stride folder must be a real private directory.'
+    [[ $(owner stat -c '%u:%a' -- "$delivery_dir") == "$DELIVERY_UID:700" ]] || fail 'Your Stride folder must be private (0700). The key remains in the profile.'
     root chown --no-dereference "$DELIVERY_UID:$delivery_gid" "$HANDOFF_DIR/key"
     DELIVERY_FILE=$(owner mktemp "$delivery_dir/$PROFILE-mcp.XXXXXXXX.key")
     owner cp -- "$HANDOFF_DIR/key" "$DELIVERY_FILE"
 }
 
 report() {
-    local menu=pace
+    local menu=stride
     case ":$CALLER_PATH:" in *":$PREFIX/bin:"*) ;; *) menu=$LAUNCHER ;; esac
     if [[ "$YES" == yes ]]; then
-        printf 'pace_install_mode=%s\npace_install_prefix=%s\npace_install_data=%s\npace_install_key_file=%s\npace_install_mcp_url=http://127.0.0.1:8080/api/v1/mcp\npace_install_menu_command=%s\n' "$MODE" "$PREFIX" "$DATA" "$DELIVERY_FILE" "$menu"
-        if [[ "$MODE" == user ]]; then printf 'pace_install_serve_command=%s --config %s serve --transport http\n' "$BINARY" "$CONFIG"; fi
+        printf 'stride_install_mode=%s\nstride_install_prefix=%s\nstride_install_data=%s\nstride_install_key_file=%s\nstride_install_mcp_url=http://127.0.0.1:8080/api/v1/mcp\nstride_install_menu_command=%s\n' "$MODE" "$PREFIX" "$DATA" "$DELIVERY_FILE" "$menu"
+        if [[ "$MODE" == user ]]; then printf 'stride_install_serve_command=%s --config %s serve --transport http\n' "$BINARY" "$CONFIG"; fi
         return
     fi
     if [[ "$MODE" == user ]]; then
-        printf '\nPace is installed for this user; no system service was created.\n'
+        printf '\nStride is installed for this user; no system service was created.\n'
         printf 'Start the MCP server when needed (it stops with the terminal or at reboot):\n  %s --config %s serve --transport http\n' "$BINARY" "$CONFIG"
     else
-        printf '\nPace is installed and running. It will start automatically after a reboot.\n'
+        printf '\nStride is installed and running. It will start automatically after a reboot.\n'
     fi
     printf 'Your private MCP key file: %s\n' "$DELIVERY_FILE"
     printf 'Keep this file private. The key stays valid for the lifetime you chose during setup.\n'
-    printf 'Open the Pace menu (users, keys, Garmin, sync) any time by typing: %s\n' "$menu"
+    printf 'Open the Stride menu (users, keys, Garmin, sync) any time by typing: %s\n' "$menu"
     if [[ "$MODE" == system ]]; then
         if [[ -n "$HTTPS_URL" ]]; then printf 'Configured MCP HTTPS address: %s\n' "$HTTPS_URL"; else printf 'Use ./install.sh --https to configure Internet access later.\n'; fi
     fi
@@ -427,7 +427,7 @@ ask_layout() {
                 esac
             fi
             local default_prefix default_data
-            if [[ "$MODE" == system ]]; then default_prefix=/usr/local; default_data=/var/lib/garmin-pace; else default_prefix=$HOME/.local; default_data=$HOME/.local/share/garmin-pace; fi
+            if [[ "$MODE" == system ]]; then default_prefix=/usr/local; default_data=/var/lib/garmin-stride; else default_prefix=$HOME/.local; default_data=$HOME/.local/share/garmin-stride; fi
             read -r -p "Program directory (bin/ and lib/ go here) [${PREFIX:-$default_prefix}]: " answer
             PREFIX=${answer:-${PREFIX:-$default_prefix}}
             read -r -p "Data directory (database, registry, keys) [${DATA:-$default_data}]: " answer
@@ -442,7 +442,7 @@ main() {
     parse_arguments "$@"
     preflight
     if [[ "$YES" == no ]]; then
-        printf '\nWelcome to Pace\n\nThis wizard installs Pace and, as a system service, automatic startup on this device.\nYour Garmin data stays in private storage on this device.\nNo packages are downloaded. Existing data and configuration are kept.\n\n'
+        printf '\nWelcome to Stride\n\nThis wizard installs Stride and, as a system service, automatic startup on this device.\nYour Garmin data stays in private storage on this device.\nNo packages are downloaded. Existing data and configuration are kept.\n\n'
     fi
     ask_profile
     load_install_env
@@ -462,8 +462,8 @@ main() {
     resolve_paths
     if [[ "$MODE" == system ]]; then preflight_system; source "$BUNDLE/https.sh"; else HTTPS_URL=; fi
     if [[ "$YES" == no ]]; then
-        printf '\nPace will install the pace command to %s/bin and store data in %s.\n' "$PREFIX" "$DATA"
-        read -r -p 'Install and configure Pace? [y/N]: ' confirmation
+        printf '\nStride will install the stride command to %s/bin and store data in %s.\n' "$PREFIX" "$DATA"
+        read -r -p 'Install and configure Stride? [y/N]: ' confirmation
         [[ "$confirmation" == y || "$confirmation" == Y ]] || { printf 'Cancelled. No system changes were made.\n'; exit 0; }
         escalate
     fi
@@ -474,7 +474,7 @@ main() {
     deliver_key
     report
     if [[ "$YES" == no ]]; then
-        read -r -p 'Open the Pace menu now? [Y/n]: ' answer
+        read -r -p 'Open the Stride menu now? [Y/n]: ' answer
         if [[ "${answer:-y}" == y || "${answer:-y}" == Y ]]; then "$LAUNCHER"; fi
     fi
 }

@@ -1,4 +1,4 @@
-//! src/interface/doctor.rs renders `pace doctor`: the Garmin network path checked without keys.
+//! src/interface/doctor.rs renders `stride doctor`: the Garmin network path checked without keys.
 //! It prints the trust settings in effect and one line per endpoint with its route, and fails the
 //! process when any endpoint gets no HTTP response. It exposes `run`.
 

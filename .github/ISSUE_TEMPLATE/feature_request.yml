@@ -15,7 +15,7 @@ body:
     id: proposal
     attributes:
       label: Proposed solution
-      description: How should Pace behave? Name the CLI command, menu or MCP tool it affects.
+      description: How should Stride behave? Name the CLI command, menu or MCP tool it affects.
     validations:
       required: true
   - type: textarea

@@ -1,4 +1,4 @@
-# Garmin Pace
+# Garmin Stride
 
 **Your Garmin data, a terminal workspace, and an AI assistant that can help plan your training.**
 
@@ -7,7 +7,7 @@
 [Get started](docs/getting-started.md) · [Usage guides](docs/README.md) ·
 [CLI](docs/cli.md) · [Coach](docs/coach.md) · [Connect your assistant](docs/assistant.md)
 
-Pace imports Garmin activities, health metrics, workouts and Coach schedules into
+Stride imports Garmin activities, health metrics, workouts and Coach schedules into
 local SQLite. Browse them in the terminal or connect an AI assistant through MCP
 to review your results and propose training changes. Drafts stay local until you
 explicitly save them to Garmin.
@@ -16,14 +16,14 @@ One Rust binary. Embedded SQLite. No database server, Python sidecar or browser
 runtime. Built for Linux ARM64 devices such as the Raspberry Pi Zero 2 W and
 CardputerZero; Podman supports local development on macOS.
 
-![Pace terminal Actions menu with History, Garmin, Training and Configuration sections](docs/assets/terminal-menu.png)
+![Stride terminal Actions menu with History, Garmin, Training and Configuration sections](docs/assets/terminal-menu.png)
 
 *An anonymized illustration of the terminal menu, opened with
 `mise run container:menu`. Personal account details have been removed.*
 
 ## What you can do
 
-| Workflow | What Pace provides |
+| Workflow | What Stride provides |
 | --- | --- |
 | Activity history | Import, search and browse completed sessions and recorded strength sets |
 | Health and recovery | Sleep, heart rate, HRV, Body Battery, SpO₂, weight, daily summary and readiness |
@@ -44,27 +44,27 @@ Use macOS or Linux with the tools pinned in [mise.toml](mise.toml) and a platfor
 C/C++ linker toolchain already installed. No tools are installed by these commands.
 
 ```sh
-git clone https://github.com/tysee/garmin-pace.git
-cd garmin-pace
+git clone https://github.com/tysee/garmin-stride.git
+cd garmin-stride
 mise trust
 mise run build
-mise exec -- pace config init
-mise exec -- pace init
-mise exec -- pace setup
+mise exec -- stride config init
+mise exec -- stride init
+mise exec -- stride setup
 ```
 
 The guided setup prepares Garmin access and initial imports. From this checkout,
-use `mise exec -- pace …` for the configured development binary, or export it once
+use `mise exec -- stride …` for the configured development binary, or export it once
 for the examples below:
 
 ```sh
 export PATH="$PWD/target/debug:$PATH"
-export GARMIN_PACE_CONFIG="$PWD/config.toml"
-pace                     # interactive terminal menu
-pace ui --compact        # small-screen layout
+export GARMIN_STRIDE_CONFIG="$PWD/config.toml"
+stride                   # interactive terminal menu
+stride ui --compact      # small-screen layout
 ```
 
-Prefer not to build? [GitHub Releases](https://github.com/tysee/garmin-pace/releases)
+Prefer not to build? [GitHub Releases](https://github.com/tysee/garmin-stride/releases)
 carry installer archives for Linux aarch64 and x86_64 (see
 [deployment](docs/deployment.md#raspberry-pi)). Have a release binary already? Put
 it on PATH and pass `--config /absolute/path/config.toml`; neither Rust nor mise is
@@ -79,19 +79,19 @@ updates local snapshots; the remaining commands below read those snapshots.
 
 ```sh
 # Import the Coach week without changing the plan in Garmin.
-pace coach sync --start 2026-10-26 --end 2026-11-01
+stride coach sync --start 2026-10-26 --end 2026-11-01
 
 # Inspect the plan, scheduled sessions and recent results.
-pace coach show --start 2026-10-26 --end 2026-11-01
-pace activities search --sport strength_training --limit 10
-pace health show --date 2026-10-25
+stride coach show --start 2026-10-26 --end 2026-11-01
+stride activities search --sport strength_training --limit 10
+stride health show --date 2026-10-25
 
 # Keep standalone workouts and proposed changes easy to find.
-pace workout list --standalone
-pace workout drafts
+stride workout list --standalone
+stride workout drafts
 
 # Use structured output in scripts.
-pace --json coach show --start 2026-10-26 --end 2026-11-01
+stride --json coach show --start 2026-10-26 --end 2026-11-01
 ```
 
 Activity results and health must be [imported separately](docs/history-and-health.md).
@@ -117,12 +117,13 @@ Example request for a [connected assistant](docs/assistant.md):
 > local drafts only; do not save anything to Garmin.
 
 Review the proposals in **Coach → Review drafts** or **Workout drafts**. Approve a
-specific revision in a separate instruction to save it. Pace checks the source
+specific revision in a separate instruction to save it. Stride checks the source
 revision, journals the write and verifies Garmin's response by reading it back.
 
-Coach remains the calendar interface. Pace edits individual workout definitions;
-it does not reschedule sessions, change Coach preferences or replace Garmin's
-adaptive algorithm. Nothing adjusts itself in the background. Read the complete
+Coach remains the calendar interface. Stride edits individual workout definitions and,
+on your explicit instruction, moves one scheduled session to another date; it does
+not shift the rest of a plan, change Coach preferences or replace Garmin's adaptive
+algorithm. Nothing adjusts itself in the background. Read the complete
 [Coach workflow](docs/coach.md) and [workout save/delivery flow](docs/workouts.md).
 
 ## Credentials and privacy
@@ -130,7 +131,7 @@ adaptive algorithm. Nothing adjusts itself in the background. Read the complete
 - A **Personal API key** reads activities and seven health datasets.
 - A **Connect session** reads readiness, strength sets, workouts, Coach and devices,
   and supports explicit workout and benchmark writes through unofficial endpoints.
-- A **Pace access key** authenticates HTTP MCP clients to one local profile.
+- A **Stride access key** authenticates HTTP MCP clients to one local profile.
 
 Health imports need both Garmin credentials. Local MCP reads and local drafts are
 available by default; agent access to Garmin requires an administrator grant.
@@ -153,5 +154,5 @@ Report suspected vulnerabilities privately as described in the
 
 ## License
 
-[MIT](LICENSE) © 2026 Garmin Pace contributors. Dependencies and the bundled Caddy
+[MIT](LICENSE) © 2026 Garmin Stride contributors. Dependencies and the bundled Caddy
 keep their own licenses. Garmin trademarks belong to their owners.

@@ -40,7 +40,7 @@ pub struct NetworkReport {
     pub probes: Vec<Probe>,
 }
 
-/// Probe the Personal API, Connect API, SSO and token hosts with the client Pace uses.
+/// Probe the Personal API, Connect API, SSO and token hosts with the client Stride uses.
 pub fn diagnose(network: &GarminSettings, auth: &GarminAuthSettings) -> Result<NetworkReport> {
     let client = http::client_builder(network)?
         .user_agent(concat!(

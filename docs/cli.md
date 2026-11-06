@@ -2,25 +2,25 @@
 
 [Documentation](README.md) · [Project home](../README.md)
 
-Output is human-readable; add `--json` for scripts (`pace --json status`).
-`pace --help` lists the command groups; `pace help --all` prints every command with its flags,
+Output is human-readable; add `--json` for scripts (`stride --json status`).
+`stride --help` lists the command groups; `stride help --all` prints every command with its flags,
 defaults and accepted values, and needs no `--config`.
 
 | Command | Purpose |
 | --- | --- |
-| `pace`, `pace ui --compact` | Terminal menu, optionally in the small-screen layout |
-| `pace setup` | Guided Garmin and MCP setup |
-| `pace config check`, `pace config show` | Validate or print the non-secret config |
-| `pace config network [--proxy-url URL \| --clear-proxy] [--extra-ca-file PATH \| --clear-ca]` | Show or change only the Garmin proxy and extra CA file |
-| `pace status` | Local history and last sync |
-| `pace doctor` | Check HTTPS to every Garmin host through Pace's own client, without keys |
-| `pace sync --start DATE [--end DATE]` | Import activities, strength sets, health and Coach for a period in one journaled run |
-| `pace sync --resume` | Continue the latest unfinished full sync, skipping windows it already imported |
-| `pace garmin sync --limit 20` | Import a page of recent activities |
-| `pace garmin sync --start DATE [--end DATE]` | Import every activity of a period, page by page |
-| `pace garmin login`, `pace garmin auth-status`, `pace garmin logout` | Manage the local Connect session |
-| `pace health sync --start DATE --end DATE` | Import health and readiness for a date range |
-| `pace serve --transport stdio`, `pace serve --transport http` | Serve the saved data over MCP |
+| `stride`, `stride ui --compact` | Terminal menu, optionally in the small-screen layout |
+| `stride setup` | Guided Garmin and MCP setup |
+| `stride config check`, `stride config show` | Validate or print the non-secret config |
+| `stride config network [--proxy-url URL \| --clear-proxy] [--extra-ca-file PATH \| --clear-ca]` | Show or change only the Garmin proxy and extra CA file |
+| `stride status` | Local history and last sync |
+| `stride doctor` | Check HTTPS to every Garmin host through Stride's own client, without keys |
+| `stride sync --start DATE [--end DATE]` | Import activities, strength sets, health and Coach for a period in one journaled run |
+| `stride sync --resume` | Continue the latest unfinished full sync, skipping windows it already imported |
+| `stride garmin sync --limit 20` | Import a page of recent activities |
+| `stride garmin sync --start DATE [--end DATE]` | Import every activity of a period, page by page |
+| `stride garmin login`, `stride garmin auth-status`, `stride garmin logout` | Manage the local Connect session |
+| `stride health sync --start DATE --end DATE` | Import health and readiness for a date range |
+| `stride serve --transport stdio`, `stride serve --transport http` | Serve the saved data over MCP |
 
 ## Navigate the terminal
 
@@ -44,7 +44,7 @@ Empty health snapshots do not count as observed metric data. Today, Yesterday an
 Last 7 days shortcuts show exact inclusive dates before explicit confirmation;
 today is based on UTC, while Garmin selects its own calendar dates. Custom periods
 and recent-activity counts remain available. **Sync everything** runs the same full
-sync as `pace sync` with these shortcuts or a custom period, and offers to continue
+sync as `stride sync` with these shortcuts or a custom period, and offers to continue
 an unfinished run; Sync activities and Health → Import health import one dataset.
 Nothing syncs on opening a screen.
 
@@ -84,7 +84,7 @@ This is a completed send action, not a live queue status. Uncertain outcomes sta
 **Outcome unknown**. An empty journal means no recorded request.
 Neither an empty Garmin pending-message queue nor a device-sync timestamp proves
 receipt of a specific workout revision. Older versions are labelled separately.
-`pace workout deliveries --id ID [--device-id ID]` reads the same journal from
+`stride workout deliveries --id ID [--device-id ID]` reads the same journal from
 the command line, with `--limit` and `--offset` for bounded pages.
 
 Ordinary menus retain their position after action errors and preserve non-secret
@@ -111,10 +111,17 @@ stored samples page by page. Everything there reads the local database only.
 | **Benchmark exercises** | Stored one-rep-max estimates and evidence-backed proposals |
 
 ```sh
-pace workout list --standalone
-pace coach show --start 2026-10-26 --end 2026-11-01
-pace workout drafts
+stride workout list --standalone
+stride coach show --start 2026-10-26 --end 2026-11-01
+stride coach reschedule --schedule-id SCHEDULE_ID --date 2026-11-02
+stride coach reconcile-reschedule --schedule-id SCHEDULE_ID
+stride coach clear-reschedule --schedule-id SCHEDULE_ID
+stride workout drafts
 ```
+
+`coach reschedule` writes to Garmin immediately after journaling the move; the two
+follow-ups only read Garmin or close a journal row you checked yourself. See
+[Move one session](coach.md#move-one-session-to-another-date).
 
 Without `--standalone`, `workout list` includes imported Coach definitions too.
 The Coach menu opens the current UTC week; choose another date if your Garmin
@@ -124,8 +131,8 @@ calendar week differs. A missing week stays marked as unsynced until you import 
 
 ```sh
 mise run container:menu
-mise exec -- podman exec garmin-pace-dev /app/pace --config /app/config.toml status
-mise exec -- podman exec garmin-pace-dev /app/pace --config /app/config.toml \
+mise exec -- podman exec garmin-stride-dev /app/stride --config /app/config.toml status
+mise exec -- podman exec garmin-stride-dev /app/stride --config /app/config.toml \
   coach show --start 2026-10-26 --end 2026-11-01
 ```
 

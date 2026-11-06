@@ -43,7 +43,7 @@ impl App {
         let settings = Settings::load(&self.config)?;
         let today = chrono::Utc::now().date_naive();
         let label = format!(
-            "Activity dates: START, or START END (YYYY-MM-DD). END defaults to today, {today} (UTC). Pace reads up to {} activities per request, paced to stay under Garmin's rate limit.",
+            "Activity dates: START, or START END (YYYY-MM-DD). END defaults to today, {today} (UTC). Stride reads up to {} activities per request, paced to stay under Garmin's rate limit.",
             settings.history.max_page_size
         );
         let Some(input) = self.view.prompt(title, &label, false)? else {

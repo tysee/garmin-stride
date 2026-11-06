@@ -333,9 +333,9 @@ impl App {
         let request=match source {
             Some(row) if row.coach_plan_id.is_some()=>format!("Ask your model:\nAdjust Coach workout {} ({}) for [your request]. Import my current Coach week and read the recorded results and health first. Keep source ID/revision, include an explanation with evidence and uncertainty, and show BEFORE/AFTER including recommended weights and affected dates. Save only on my separate explicit instruction.\n\nCoach plan: {}",row.id,row.name,row.coach_plan_id.ok_or_else(|| anyhow::anyhow!("missing Coach identity"))?),
             Some(row)=>format!("Ask your model:\nUpdate my Garmin workout {} ({}) with: [your changes]. Read it with get_workout_v1 and create a draft using its source ID and revision.",row.id,row.name),
-            None=>"Ask your model:\nCreate a workout for [your goal, sport and constraints]. Use my saved activities and health as context and create a local draft in Pace.".into(),
+            None=>"Ask your model:\nCreate a workout for [your goal, sport and constraints]. Use my saved activities and health as context and create a local draft in Stride.".into(),
         };
-        self.view.result("Create / edit with model",&format!("Use Claude, Codex or another client connected to Pace through MCP. This terminal does not run a model.\n\n{request}\n\nThe model uses create_workout_draft_v1. Further corrections use revise_workout_draft_v1.\n\nThen open Workout drafts here, review all steps and choose Save to Garmin. Nothing is sent automatically. If the administrator granted Garmin writes for your MCP user, you can instead tell the model to save it; its quote of your instruction appears under the draft."))?;
+        self.view.result("Create / edit with model",&format!("Use Claude, Codex or another client connected to Stride through MCP. This terminal does not run a model.\n\n{request}\n\nThe model uses create_workout_draft_v1. Further corrections use revise_workout_draft_v1.\n\nThen open Workout drafts here, review all steps and choose Save to Garmin. Nothing is sent automatically. If the administrator granted Garmin writes for your MCP user, you can instead tell the model to save it; its quote of your instruction appears under the draft."))?;
         Ok(())
     }
     pub(super) fn workout_drafts(&mut self) -> Result<()> {

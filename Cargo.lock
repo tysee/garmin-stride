@@ -585,8 +585,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "garmin-pace"
-version = "0.2.0"
+name = "garmin-stride"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "axum",

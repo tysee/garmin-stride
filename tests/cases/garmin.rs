@@ -488,8 +488,8 @@ fn cli_reads_the_profile_key_file_without_env_file() -> Result<()> {
         ),
     ])?;
     configure(&fixture, &server.base)?;
-    let key_file = garmin_pace::secrets::profile_key_path(&fixture.settings.database.path)?;
-    garmin_pace::secrets::Secrets::save_personal_key(&key_file, KEY)?;
+    let key_file = garmin_stride::secrets::profile_key_path(&fixture.settings.database.path)?;
+    garmin_stride::secrets::Secrets::save_personal_key(&key_file, KEY)?;
     let output = fixture
         .command()
         .env_remove("GARMIN_PERSONAL_API_KEY")
@@ -540,7 +540,7 @@ fn authentication_failure_and_rate_limit_stop_without_exposing_response() -> Res
 
 #[test]
 fn migration_preserves_v1_rows_and_write_failure_rolls_back_batch() -> Result<()> {
-    use garmin_pace::history::{
+    use garmin_stride::history::{
         Activity, ActivitySource, HistoryError, HistoryService, SqliteHistory,
     };
     let fixture = Fixture::new()?;
@@ -605,7 +605,7 @@ pub(super) fn configure_connect(fixture: &Fixture, base: &str) -> Result<()> {
         &fixture.config,
         fs::read_to_string(&fixture.config)?.replace("https://connectapi.garmin.com", base),
     )?;
-    let settings = garmin_pace::config::Settings::load(&fixture.config)?;
+    let settings = garmin_stride::config::Settings::load(&fixture.config)?;
     fs::create_dir_all(
         settings
             .garmin_auth
@@ -637,7 +637,7 @@ pub(super) fn configure_connect(fixture: &Fixture, base: &str) -> Result<()> {
 
 #[test]
 fn native_login_mfa_refresh_rotation_and_logout_use_private_session() -> Result<()> {
-    use garmin_pace::{
+    use garmin_stride::{
         config::Settings,
         garmin::{login, logout, session_expiry},
     };
@@ -707,8 +707,8 @@ fn native_login_rate_limit_names_stage_and_stops_without_saving() -> Result<()> 
     )])?;
     let text = fs::read_to_string(&fixture.config)?.replace("https://sso.garmin.com", &server.base);
     fs::write(&fixture.config, text)?;
-    let settings = garmin_pace::config::Settings::load(&fixture.config)?;
-    let result = garmin_pace::garmin::login(
+    let settings = garmin_stride::config::Settings::load(&fixture.config)?;
+    let result = garmin_stride::garmin::login(
         &settings.garmin_auth,
         &settings.garmin,
         "fixture@example.invalid",

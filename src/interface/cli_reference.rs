@@ -1,4 +1,4 @@
-//! src/interface/cli_reference.rs renders `pace help --all`: every visible command with its
+//! src/interface/cli_reference.rs renders `stride help --all`: every visible command with its
 //! description and flags, walked from the same clap definition that parses arguments, so the
 //! reference cannot drift from the CLI. Exposes render.
 

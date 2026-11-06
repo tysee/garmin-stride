@@ -74,8 +74,8 @@ pub fn proxy_config(
         "invalid HTTPS resource bounds"
     );
     Ok(include_str!("../../deploy/Caddyfile")
-        .replace("{$GARMIN_PACE_DOMAIN}", domain.as_str())
-        .replace("{$GARMIN_PACE_UPSTREAM}", &upstream.to_string())
-        .replace("{$GARMIN_PACE_BODY_LIMIT}", &body_limit.to_string())
-        .replace("{$GARMIN_PACE_TIMEOUT}", &timeout.to_string()))
+        .replace("{$GARMIN_STRIDE_DOMAIN}", domain.as_str())
+        .replace("{$GARMIN_STRIDE_UPSTREAM}", &upstream.to_string())
+        .replace("{$GARMIN_STRIDE_BODY_LIMIT}", &body_limit.to_string())
+        .replace("{$GARMIN_STRIDE_TIMEOUT}", &timeout.to_string()))
 }

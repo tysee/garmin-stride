@@ -2,7 +2,7 @@
 //! plus process cleanup shared by the CLI, MCP, and history integration tests.
 
 use anyhow::{Context, Result};
-use garmin_pace::{config::Settings, history::SqliteHistory};
+use garmin_stride::{config::Settings, history::SqliteHistory};
 use std::{
     fs,
     path::PathBuf,
@@ -50,7 +50,7 @@ impl Fixture {
     }
 
     pub fn command(&self) -> Command {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_pace"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_stride"));
         command.arg("--config").arg(&self.config).arg("--json");
         command
     }

@@ -2,11 +2,11 @@
 
 [Documentation](README.md) · [Project home](../README.md)
 
-Pace keeps a local copy of your Garmin workout library, separate from completed
+Stride keeps a local copy of your Garmin workout library, separate from completed
 activities. An assistant connected over MCP reads that library and proposes a new
 workout or a revision of an existing one as a **draft**. You review the draft in
 the terminal or CLI, then save it to Garmin and optionally send it to a watch.
-Pace does not run a model itself and writes to Garmin only when you save in the
+Stride does not run a model itself and writes to Garmin only when you save in the
 terminal or CLI, or when your assistant, with an administrator grant, calls a write
 tool quoting your instruction.
 
@@ -23,7 +23,7 @@ still readable as a display-only `outline` (in `get_workout_v1`, `workout show`
 and the menu), which is never written back.
 
 Garmin's explicit `targetType: null` with empty target values and zone means no
-intensity target, as used by Coach warmups and cooldowns. Pace imports these steps
+intensity target, as used by Coach warmups and cooldowns. Stride imports these steps
 as editable and writes the equivalent `no.target` representation. A missing or
 malformed type, or target values without a type, remains read-only; benchmark
 percentages, repetitions and repeat groups keep their independent meaning.
@@ -35,19 +35,19 @@ MCP tools: `list_workouts_v1`, `get_workout_v1`, `create_workout_draft_v1`,
 
 ## Draft, review, save, then deliver
 
-1. Run `pace workout sync --start 0 --limit 20` to import a library page.
+1. Run `stride workout sync --start 0 --limit 20` to import a library page.
 2. Ask your connected assistant to draft a workout locally, or use
-   `pace workout draft --file workout.json` with a v1 workout document.
-3. Run `pace workout drafts`, then `pace workout review --id DRAFT_ID` to inspect
+   `stride workout draft --file workout.json` with a v1 workout document.
+3. Run `stride workout drafts`, then `stride workout review --id DRAFT_ID` to inspect
    the full before/after definition and current revision. Replace uppercase
    placeholders with values from the output.
 4. **Writes to Garmin:** only when you approve that exact revision, run
-   `pace workout save --id DRAFT_ID --revision REVISION`.
+   `stride workout save --id DRAFT_ID --revision REVISION`.
 5. Check that the result is `verified`. Saving alone does not request delivery.
-6. Optionally run `pace garmin devices`, then **request delivery** with
-   `pace workout send --id WORKOUT_ID --device-id DEVICE_ID`. Use the Garmin
+6. Optionally run `stride garmin devices`, then **request delivery** with
+   `stride workout send --id WORKOUT_ID --device-id DEVICE_ID`. Use the Garmin
    workout ID returned after saving, not the local draft ID.
-7. Inspect `pace workout deliveries --id WORKOUT_ID` and check the watch after sync.
+7. Inspect `stride workout deliveries --id WORKOUT_ID` and check the watch after sync.
 
 Example assistant request:
 
@@ -55,12 +55,12 @@ Example assistant request:
 > Explain the recommended loads and show before → after. Do not save to Garmin.
 
 Editing an existing workout requires its source ID and revision from
-`pace --json workout show --id WORKOUT_ID`; the assistant reads the same fields
+`stride --json workout show --id WORKOUT_ID`; the assistant reads the same fields
 through MCP. [Coach drafts](coach.md) additionally require an explanation.
 
 ## Command reference
 
-Prefix each command below with `pace`. IDs and revisions come from list and review output.
+Prefix each command below with `stride`. IDs and revisions come from list and review output.
 
 | Command | Purpose |
 | --- | --- |
@@ -77,7 +77,7 @@ Prefix each command below with `pace`. IDs and revisions come from list and revi
 | `workout clear-delivery --id ID --device-id ID` | Drop a pending delivery you have checked yourself |
 
 Saving re-reads Garmin first and refuses if the source changed since the draft was
-made. After a write, Pace reads the workout back and verifies it. Writes are
+made. After a write, Stride reads the workout back and verifies it. Writes are
 journaled and never retried automatically. If Garmin refuses a write outright
 (HTTP 4xx), the draft returns to `draft` and a delivery reservation is released. If
 the outcome is unknown, the draft or delivery stays pending until you `reconcile`
@@ -87,7 +87,7 @@ check the watch after it syncs.
 
 ## Benchmark exercises
 
-Garmin benchmarks are per-exercise one-rep-max estimates. Pace imports the
+Garmin benchmarks are per-exercise one-rep-max estimates. Stride imports the
 benchmark catalogue and your recorded strength sets for a date window of up to
 31 days. An assistant can then estimate a benchmark from the observed sets for that
 exact exercise and store the estimate as a local **proposal** with its method,

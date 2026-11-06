@@ -3,7 +3,7 @@
 
 use crate::common::Fixture;
 use anyhow::{Context, Result};
-use garmin_pace::installation::{PublicDomain, proxy_config};
+use garmin_stride::installation::{PublicDomain, proxy_config};
 
 #[test]
 fn https_hostname_boundary_rejects_config_and_url_injection() -> Result<()> {
@@ -95,7 +95,7 @@ fn https_saved_domain_is_bounded_validated_and_reusable() -> Result<()> {
         "x".repeat(4097),
     ] {
         std::fs::write(&path, invalid)?;
-        assert!(garmin_pace::installation::load_https_domain(&path).is_err());
+        assert!(garmin_stride::installation::load_https_domain(&path).is_err());
     }
     Ok(())
 }

@@ -1,5 +1,5 @@
 //! tests/cases/full_sync.rs verifies the journaled full sync: honest per-step results, resume
-//! that skips done windows, and stopping, against a real SQLite journal; then `pace sync` as a
+//! that skips done windows, and stopping, against a real SQLite journal; then `stride sync` as a
 //! process against the local Garmin stand-in, without a Connect login.
 
 use crate::{
@@ -7,7 +7,7 @@ use crate::{
     garmin::{KEY, Server, TOKEN, configure},
 };
 use anyhow::{Context, Result};
-use garmin_pace::sync::{
+use garmin_stride::sync::{
     Period, Progress, RunState, SqliteSyncJournal, Step, StepSource, StepState, SyncService, Window,
 };
 use serde_json::{Value, json};
@@ -61,7 +61,7 @@ fn now() -> String {
     "2026-10-04T00:00:00.000Z".into()
 }
 
-fn state(report: &garmin_pace::sync::SyncReport, step: Step) -> Result<StepState> {
+fn state(report: &garmin_stride::sync::SyncReport, step: Step) -> Result<StepState> {
     report
         .steps
         .iter()
@@ -202,7 +202,7 @@ fn cli_sync_imports_each_step_names_skips_and_resumes_without_refetching() -> Re
     configure(&fixture, &server.base)?;
     let (ok, report, stderr) = sync(&fixture, &["--start", date, "--end", date])?;
     assert!(!ok, "skipped steps make the run partial");
-    assert!(stderr.contains("pace sync --resume"), "{stderr}");
+    assert!(stderr.contains("stride sync --resume"), "{stderr}");
     assert!(!stderr.contains(KEY) && !stderr.contains(TOKEN));
     assert_eq!(report["state"], "partial");
     let step = |name: &str| -> Value {
@@ -218,7 +218,7 @@ fn cli_sync_imports_each_step_names_skips_and_resumes_without_refetching() -> Re
         assert!(
             step(name)["reason"]
                 .as_str()
-                .is_some_and(|r| r.contains("pace garmin login"))
+                .is_some_and(|r| r.contains("stride garmin login"))
         );
     }
     server.finish()?;

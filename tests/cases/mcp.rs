@@ -27,7 +27,7 @@ async fn stdio_discovers_tools_and_reads_persisted_history() -> Result<()> {
     )?;
     let log_path = fixture.directory.path().join("stdio.log");
     tokio::time::timeout(Duration::from_secs(15), async {
-        let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_pace"));
+        let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_stride"));
         command
             .arg("--config")
             .arg(&fixture.config)
@@ -39,7 +39,7 @@ async fn stdio_discovers_tools_and_reads_persisted_history() -> Result<()> {
         assert!(stderr.is_none());
         let client = ().serve(transport).await?;
         let tools = client.list_all_tools().await?;
-        assert_eq!(tools.len(), 37);
+        assert_eq!(tools.len(), 39);
         for tool in &tools {
             // Only the granted Garmin tools reach the network; every other tool stays local.
             let metadata=serde_json::to_value(tool)?;
@@ -71,7 +71,7 @@ async fn stdio_discovers_tools_and_reads_persisted_history() -> Result<()> {
         let context=client.call_tool(CallToolRequestParams::new("get_benchmark_context_v1")
             .with_arguments(json!({"key":"BARBELL_ROW","start":"2026-10-20","end":"2026-10-24"}).as_object().context("object")?.clone())).await?;
         assert_eq!(context.structured_content.context("evidence")?["mean_weight_kg"],50.0);
-        let proposal=garmin_pace::workouts::benchmarks::document::ProposalDocument::from(proposal);
+        let proposal=garmin_stride::workouts::benchmarks::document::ProposalDocument::from(proposal);
         let estimate=client.call_tool(CallToolRequestParams::new("propose_benchmark_v1")
             .with_arguments(json!({"proposal":proposal}).as_object().context("object")?.clone())).await?;
         assert_eq!(estimate.structured_content.context("proposal")?["state"],"draft");
@@ -215,14 +215,14 @@ fn verify_http(client: &Client, base: &str, token: &str) -> Result<()> {
         initialized["result"]["capabilities"]["tools"].is_object(),
         "{initialized}"
     );
-    assert_eq!(initialized["result"]["serverInfo"]["name"], "garmin-pace");
+    assert_eq!(initialized["result"]["serverInfo"]["name"], "garmin-stride");
     let tools = rpc(
         client,
         base,
         token,
         json!({"jsonrpc":"2.0","id":2,"method":"tools/list"}),
     )?;
-    assert_eq!(tools["result"]["tools"].as_array().map(Vec::len), Some(37));
+    assert_eq!(tools["result"]["tools"].as_array().map(Vec::len), Some(39));
     let status = rpc(
         client,
         base,
@@ -378,7 +378,7 @@ fn users_are_isolated_and_revocation_applies_without_restart() -> Result<()> {
         "{denied}"
     );
     let (_, proposal) = crate::benchmarks::seed(&alice, false)?;
-    let proposal = garmin_pace::workouts::benchmarks::document::ProposalDocument::from(proposal);
+    let proposal = garmin_stride::workouts::benchmarks::document::ProposalDocument::from(proposal);
     let created = rpc(
         &client,
         &base,

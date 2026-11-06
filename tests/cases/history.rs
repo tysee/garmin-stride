@@ -2,7 +2,7 @@
 //! rejection using real temporary SQLite databases and actual TOML files.
 
 use anyhow::Result;
-use garmin_pace::{
+use garmin_stride::{
     config::Settings,
     history::{HistoryError, HistoryService, SqliteHistory},
 };
@@ -139,7 +139,7 @@ fn private_file_checks_preserve_wal_locks() -> Result<()> {
 
 #[cfg(unix)]
 fn preserve_locks(wal: bool) -> Result<()> {
-    use garmin_pace::access::SqliteAccess;
+    use garmin_stride::access::SqliteAccess;
     let fixture = Fixture::new()?;
     let settings = if wal {
         fixture.init()?;
@@ -166,9 +166,9 @@ fn preserve_locks(wal: bool) -> Result<()> {
     let check = |expected: &str| -> Result<()> {
         let output = std::process::Command::new(std::env::current_exe()?)
             .args(["--exact", "history::sqlite_lock_probe", "--nocapture"])
-            .env("PACE_TEST_LOCK_PATH", &settings.path)
-            .env("PACE_TEST_LOCK_MODE", if wal { "wal" } else { "delete" })
-            .env("PACE_TEST_EXPECT_LOCK", expected)
+            .env("STRIDE_TEST_LOCK_PATH", &settings.path)
+            .env("STRIDE_TEST_LOCK_MODE", if wal { "wal" } else { "delete" })
+            .env("STRIDE_TEST_EXPECT_LOCK", expected)
             .output()?;
         anyhow::ensure!(
             output.status.success(),
@@ -186,13 +186,13 @@ fn preserve_locks(wal: bool) -> Result<()> {
 #[cfg(unix)]
 #[test]
 fn sqlite_lock_probe() -> Result<()> {
-    let Some(path) = std::env::var_os("PACE_TEST_LOCK_PATH") else {
+    let Some(path) = std::env::var_os("STRIDE_TEST_LOCK_PATH") else {
         return Ok(());
     };
     let db = rusqlite::Connection::open(path)?;
     db.busy_timeout(std::time::Duration::from_millis(50))?;
-    let expected = std::env::var("PACE_TEST_EXPECT_LOCK")? == "held";
-    let blocked = if std::env::var("PACE_TEST_LOCK_MODE")? == "wal" {
+    let expected = std::env::var("STRIDE_TEST_EXPECT_LOCK")? == "held";
+    let blocked = if std::env::var("STRIDE_TEST_LOCK_MODE")? == "wal" {
         let busy: i32 = db.query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |r| r.get(0))?;
         busy == 1
     } else {

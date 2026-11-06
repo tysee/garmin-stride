@@ -22,7 +22,7 @@ pub struct ProposalDocument {
     pub repetitions: u32,
     /// Model-estimated 1RM, not a measured personal record.
     pub one_rep_max_kg: f64,
-    /// Explain the formula/estimation method; Pace does not substitute its own estimate.
+    /// Explain the formula/estimation method; Stride does not substitute its own estimate.
     pub method: String,
     /// Explain how recent per-exercise averages and any available recovery data inform this estimate.
     pub rationale: String,

@@ -151,7 +151,7 @@ impl App {
                 let path = crate::secrets::profile_key_path(&settings.database.path)?;
                 self.enter_garmin_key(&settings, &path)?;
                 if self.env_file.is_some() {
-                    self.view.result("Personal API key", &format!("Garmin accepted the key. It was saved hidden to a private file:\n{}\n\nPace finds this file automatically on every launch.\nNext: import activities. For readiness and workouts, use Garmin login.", path.display()))?;
+                    self.view.result("Personal API key", &format!("Garmin accepted the key. It was saved hidden to a private file:\n{}\n\nStride finds this file automatically on every launch.\nNext: import activities. For readiness and workouts, use Garmin login.", path.display()))?;
                 }
                 Ok(())
             }

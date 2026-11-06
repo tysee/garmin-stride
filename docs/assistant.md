@@ -5,27 +5,28 @@
 ## Local stdio
 
 Register the binary with your client from the repository root. The client starts
-Pace itself; no separately running server or access key is needed. Initialize the
+Stride itself; no separately running server or access key is needed. Initialize the
 profile first, then build the release binary used in these examples:
 
 ```sh
-mise exec -- cargo build --release --locked --bin pace
+mise exec -- cargo build --release --locked --bin stride
 ```
 
 ```sh
 # Codex
-codex mcp add garmin-pace -- \
-  "$PWD/target/release/pace" --config "$PWD/config.toml" serve --transport stdio
+codex mcp add garmin-stride -- \
+  "$PWD/target/release/stride" --config "$PWD/config.toml" serve --transport stdio
 
 # Claude Code
-claude mcp add --transport stdio garmin-pace -- \
-  "$PWD/target/release/pace" --config "$PWD/config.toml" serve --transport stdio
+claude mcp add --transport stdio garmin-stride -- \
+  "$PWD/target/release/stride" --config "$PWD/config.toml" serve --transport stdio
 ```
 
-Rebuild with `mise exec -- cargo build --release --locked --bin pace` after source changes
+Rebuild with `mise exec -- cargo build --release --locked --bin stride` after source changes
 and reconnect the server in your client. Use the same config for sync and MCP so new imports are visible.
-The current catalogue has 37 tools, including `get_coach_v1` and `sync_coach_v1`.
-If an existing Codex connection still shows 34, reconnect `garmin-pace` in the
+The current catalogue has 39 tools, including `get_coach_v1`, `sync_coach_v1` and
+`reschedule_coach_session_v1`.
+If an existing Codex connection still shows 34, reconnect `garmin-stride` in the
 client's MCP settings to reload its tool definitions. Verify both Coach tools are
 available; `get_capabilities_v1` alone checks the running server, not the client's
 cached catalogue.
@@ -61,8 +62,9 @@ These calls share the Garmin concurrency gate with writes and may outlive an HTT
 timeout. Check capabilities for a busy server and read local snapshots before
 continuing; never repeat an uncertain save or delivery. For a lost create response,
 sync the library, inspect the matching definition and use its ID for reconciliation.
-Pending-delivery closure and pending-save abandonment remain explicit CLI actions
-after the user checks Garmin; the agent cannot confirm physical watch receipt.
+Pending-delivery closure, pending-save abandonment and clearing an unresolved Coach
+move remain explicit CLI actions after the user checks Garmin; the agent cannot confirm
+physical watch receipt.
 
 stdio and HTTP expose the same tools. The original read-only tools remain available:
 
@@ -98,7 +100,7 @@ reconcile and deliver them on your instruction; see
 
 ## HTTP and multiple users
 
-Use Streamable HTTP when Pace runs on another machine. `/api/v1/mcp` and
+Use Streamable HTTP when Stride runs on another machine. `/api/v1/mcp` and
 `/api/v1/health` both require a per-user Bearer key. Public access needs HTTPS.
 
 Open [Swagger UI](http://127.0.0.1:8080/api/v1/docs) on a running local server,
@@ -118,16 +120,16 @@ requests and schema validation are never sent to an external validator.
 <summary>Provision a profile for HTTP</summary>
 
 ```sh
-pace users init
-pace users add owner --profile "$PWD/config.toml"
-pace users issue-key owner --output "$PWD/data/owner-mcp.key"
-pace serve --transport http
+stride users init
+stride users add owner --profile "$PWD/config.toml"
+stride users issue-key owner --output "$PWD/data/owner-mcp.key"
+stride serve --transport http
 ```
 
 The CLI writes the key to a new private file and never prints it. In the terminal
 menu, Onboarding step 8 lists MCP users with their key state and shows a new key
 once on screen for copying instead; Configuration → MCP users lists every user and
-key. Pace stores only key hashes. Configure the client to
+key. Stride stores only key hashes. Configure the client to
 send `Authorization: Bearer <key>` to `http://127.0.0.1:8080/api/v1/mcp` locally,
 or `https://your-domain/api/v1/mcp` remotely. Keep the key out of URLs and shell
 arguments.
@@ -136,7 +138,7 @@ Each additional user gets its own config, database and Connect session, register
 against the server config:
 
 ```sh
-pace --config /path/to/server/config.toml users add alice \
+stride --config /path/to/server/config.toml users add alice \
   --profile /path/to/alice/config.toml
 ```
 
@@ -160,19 +162,21 @@ By default an assistant connected over MCP can only read local data and write lo
 drafts. An administrator can let one user's assistant finish the flow from chat:
 
 ```sh
-pace users allow-garmin-writes owner   # undo with: pace users deny-garmin-writes owner
+stride users allow-garmin-writes owner   # undo with: stride users deny-garmin-writes owner
 ```
 
 Over local stdio, where there is no registry, set `stdio_garmin_writes = true` under
 `[runtime]` in that profile's config instead. The grant enables the explicit
-sync/refresh tools described here, including `sync_coach_v1`, and these six Garmin operations:
+sync/refresh tools described here, including `sync_coach_v1`, and these eight Garmin operations:
 `save_workout_draft_to_garmin_v1`, `reconcile_workout_draft_v1`,
 `send_workout_to_device_v1`, `list_garmin_devices_v1`,
-`save_benchmark_draft_to_garmin_v1` and `reconcile_benchmark_draft_v1`. Without the
-grant they answer "not enabled" and contact nothing.
+`save_benchmark_draft_to_garmin_v1`, `reconcile_benchmark_draft_v1`,
+`reschedule_coach_session_v1` and `reconcile_coach_reschedule_v1`. Without the
+grant they answer "not enabled" and contact nothing. A Coach move takes the schedule
+ID from `get_coach_v1` and one new Garmin calendar date; see [Coach](coach.md).
 
 Every write takes a `user_request`: your instruction, quoted by the assistant
-(1 to 1000 bytes, no control characters). Pace cannot check that you really said
+(1 to 1000 bytes, no control characters). Stride cannot check that you really said
 it; the grant is the boundary, the quote is the audit trail. It is stored with the
 draft or delivery before Garmin is contacted and shown by `workout review`,
 `benchmark review` and the menu as "Saved via MCP on user request".

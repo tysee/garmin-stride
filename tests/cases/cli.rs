@@ -16,7 +16,7 @@ fn interactive_cli_requires_a_terminal_and_rejects_json() -> Result<()> {
         vec!["setup"],
         vec!["setup", "--compact"],
     ] {
-        let output = std::process::Command::new(env!("CARGO_BIN_EXE_pace"))
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_stride"))
             .arg("--config")
             .arg(&fixture.config)
             .args(args)
@@ -34,50 +34,50 @@ fn interactive_cli_requires_a_terminal_and_rejects_json() -> Result<()> {
 
 #[test]
 fn full_help_lists_every_visible_command_and_flag_without_a_config() -> Result<()> {
-    let output = std::process::Command::new(env!("CARGO_BIN_EXE_pace"))
-        .env_remove("GARMIN_PACE_CONFIG")
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_stride"))
+        .env_remove("GARMIN_STRIDE_CONFIG")
         .args(["help", "--all"])
         .output()?;
     assert!(output.status.success());
     let text = String::from_utf8(output.stdout)?;
     for needle in [
         "--config <CONFIG> (required)",
-        "[env: GARMIN_PACE_CONFIG]",
-        "pace workout send",
+        "[env: GARMIN_STRIDE_CONFIG]",
+        "stride workout send",
         "--device-id <DEVICE_ID> (required)",
-        "pace config network",
+        "stride config network",
         "--clear-proxy",
-        "pace activities list",
+        "stride activities list",
         "[default: 0]",
         "[values: stdio, http]",
     ] {
         assert!(text.contains(needle), "{needle}\n{text}");
     }
-    for hidden in ["installation-check", "--key-handoff", "pace help"] {
+    for hidden in ["installation-check", "--key-handoff", "stride help"] {
         assert!(!text.contains(hidden), "{hidden}");
     }
     // Global options are listed once, not repeated under every command.
     assert_eq!(text.matches("--json").count(), 1);
-    let short = std::process::Command::new(env!("CARGO_BIN_EXE_pace"))
-        .env_remove("GARMIN_PACE_CONFIG")
+    let short = std::process::Command::new(env!("CARGO_BIN_EXE_stride"))
+        .env_remove("GARMIN_STRIDE_CONFIG")
         .arg("--help")
         .output()?;
-    assert!(String::from_utf8(short.stdout)?.contains("pace help --all"));
+    assert!(String::from_utf8(short.stdout)?.contains("stride help --all"));
     Ok(())
 }
 
 #[test]
 fn cli_configuration_and_history_flow() -> Result<()> {
     let fixture = Fixture::new()?;
-    let check = std::process::Command::new(env!("CARGO_BIN_EXE_pace"))
-        .env("GARMIN_PACE_CONFIG", &fixture.config)
+    let check = std::process::Command::new(env!("CARGO_BIN_EXE_stride"))
+        .env("GARMIN_STRIDE_CONFIG", &fixture.config)
         .args(["config", "check"])
         .output()?;
     assert!(check.status.success());
     let explicit_config = fixture
         .command()
         .env(
-            "GARMIN_PACE_CONFIG",
+            "GARMIN_STRIDE_CONFIG",
             fixture.directory.path().join("missing.toml"),
         )
         .args(["config", "check"])
@@ -128,7 +128,7 @@ fn config_init_never_overwrites_and_show_excludes_credentials() -> Result<()> {
     );
     let show = fixture
         .command()
-        .env("GARMIN_PACE_HTTP_TOKEN", "do-not-print-this-credential")
+        .env("GARMIN_STRIDE_HTTP_TOKEN", "do-not-print-this-credential")
         .args(["config", "show"])
         .output()?;
     assert!(show.status.success());
@@ -144,7 +144,7 @@ fn http_refuses_to_start_without_a_registry() -> Result<()> {
     fixture.init()?;
     let output = fixture
         .command()
-        .env_remove("GARMIN_PACE_HTTP_TOKEN")
+        .env_remove("GARMIN_STRIDE_HTTP_TOKEN")
         .args(["serve", "--transport", "http"])
         .output()?;
     assert!(!output.status.success());
@@ -162,7 +162,7 @@ fn dotenv_is_data_and_syntax_errors_do_not_echo_secrets() -> Result<()> {
     fs::write(
         &env,
         format!(
-            "GARMIN_PERSONAL_API_KEY= fixture-key\nGARMIN_PACE_HTTP_TOKEN='$(touch {})'\n",
+            "GARMIN_PERSONAL_API_KEY= fixture-key\nGARMIN_STRIDE_HTTP_TOKEN='$(touch {})'\n",
             marker.display()
         ),
     )?;
@@ -201,7 +201,7 @@ fn dotenv_is_data_and_syntax_errors_do_not_echo_secrets() -> Result<()> {
 fn human_cli_initializes_and_reads_history_with_units() -> Result<()> {
     let fixture = Fixture::new()?;
     let human = |args: &[&str]| -> Result<std::process::Output> {
-        Ok(std::process::Command::new(env!("CARGO_BIN_EXE_pace"))
+        Ok(std::process::Command::new(env!("CARGO_BIN_EXE_stride"))
             .arg("--config")
             .arg(&fixture.config)
             .args(args)
@@ -272,7 +272,7 @@ fn config_network_edits_only_the_garmin_egress_keys() -> Result<()> {
             "extra_ca_file = \"egress-ca.pem\""
         ]
     );
-    let settings = garmin_pace::config::Settings::load(&fixture.config)?;
+    let settings = garmin_stride::config::Settings::load(&fixture.config)?;
     assert_eq!(
         settings.garmin.proxy_url.as_deref(),
         Some("http://proxy.test:3128")
@@ -300,7 +300,7 @@ fn config_network_edits_only_the_garmin_egress_keys() -> Result<()> {
     }
     let leftovers = std::fs::read_dir(fixture.config.parent().unwrap_or(&fixture.config))?
         .filter_map(|e| e.ok())
-        .filter(|e| e.file_name().to_string_lossy().ends_with(".pace-edit"))
+        .filter(|e| e.file_name().to_string_lossy().ends_with(".stride-edit"))
         .count();
     assert_eq!(leftovers, 0);
 

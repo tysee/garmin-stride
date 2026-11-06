@@ -72,7 +72,7 @@ pub fn update_garmin_network(
         .file_name()
         .context("configuration path has no file name")?
         .to_string_lossy();
-    let temp = path.with_file_name(format!(".{name}.pace-edit"));
+    let temp = path.with_file_name(format!(".{name}.stride-edit"));
     let mode = fs::metadata(path)?.permissions().mode() & 0o777;
     let staged = (|| -> Result<()> {
         let mut file = fs::OpenOptions::new()
@@ -207,7 +207,7 @@ fn verify(original: &toml::Table, edited: &toml::Table, network: &GarminNetwork)
 mod tests {
     use super::*;
 
-    const TEXT: &str = "# top comment\n[database]\npath = \"data/pace.sqlite3\"\n\n[garmin]\nretry_base_ms = 500 # keep\n# proxy_url = \"http://proxy.internal:3128\"\nproxy_url = \"http://old:1\"\n\n[garmin_auth]\nsession_path = \"s.json\"\n";
+    const TEXT: &str = "# top comment\n[database]\npath = \"data/stride.sqlite3\"\n\n[garmin]\nretry_base_ms = 500 # keep\n# proxy_url = \"http://proxy.internal:3128\"\nproxy_url = \"http://old:1\"\n\n[garmin_auth]\nsession_path = \"s.json\"\n";
 
     fn network(proxy: Option<&str>, ca: Option<&str>) -> GarminNetwork {
         GarminNetwork {
@@ -222,7 +222,7 @@ mod tests {
         let edited = edit(TEXT, &wanted)?;
         assert_eq!(
             edited,
-            "# top comment\n[database]\npath = \"data/pace.sqlite3\"\n\n[garmin]\nretry_base_ms = 500 # keep\n# proxy_url = \"http://proxy.internal:3128\"\nproxy_url = \"http://proxy:3128\"\nextra_ca_file = 'ca \"x\".pem'\n\n[garmin_auth]\nsession_path = \"s.json\"\n"
+            "# top comment\n[database]\npath = \"data/stride.sqlite3\"\n\n[garmin]\nretry_base_ms = 500 # keep\n# proxy_url = \"http://proxy.internal:3128\"\nproxy_url = \"http://proxy:3128\"\nextra_ca_file = 'ca \"x\".pem'\n\n[garmin_auth]\nsession_path = \"s.json\"\n"
         );
         verify(&parse(TEXT)?, &parse(&edited)?, &wanted)?;
         let cleared = edit(&edited, &GarminNetwork::default())?;

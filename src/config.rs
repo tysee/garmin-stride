@@ -100,7 +100,7 @@ pub struct GarminSettings {
     /// How many times one read waits out HTTP 429 before stopping.
     #[serde(default = "default_rate_limit_retries")]
     pub rate_limit_retries: u32,
-    /// Longest single rate-limit wait Pace accepts from Garmin.
+    /// Longest single rate-limit wait Stride accepts from Garmin.
     #[serde(default = "default_rate_limit_max_wait_seconds")]
     pub rate_limit_max_wait_seconds: u64,
     /// Explicit egress proxy without credentials; unset, HTTPS_PROXY/ALL_PROXY/NO_PROXY apply.

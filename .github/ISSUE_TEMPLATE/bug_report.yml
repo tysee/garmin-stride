@@ -2,19 +2,19 @@
 # the version, platform, command and sanitized output the contributing guide requires, and
 # reminds reporters to keep credentials and health data out of public issues.
 name: Bug report
-description: Something in Pace does not work as documented
+description: Something in Stride does not work as documented
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
         Remove tokens, access keys, Garmin account details and personal health data
-        before posting. Report vulnerabilities privately per [SECURITY.md](https://github.com/tysee/garmin-pace/blob/main/SECURITY.md).
+        before posting. Report vulnerabilities privately per [SECURITY.md](https://github.com/tysee/garmin-stride/blob/main/SECURITY.md).
   - type: input
     id: version
     attributes:
-      label: Pace version
-      description: Output of `pace --version`, or the commit hash for a source build.
+      label: Stride version
+      description: Output of `stride --version`, or the commit hash for a source build.
     validations:
       required: true
   - type: input

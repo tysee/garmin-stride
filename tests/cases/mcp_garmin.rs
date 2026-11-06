@@ -9,15 +9,17 @@ use crate::{
     workouts::{remote_workout, seed_draft},
 };
 use anyhow::{Context, Result, ensure};
-use garmin_pace::workouts::benchmarks::{BenchmarkService, SqliteBenchmarks};
+use garmin_stride::workouts::benchmarks::{BenchmarkService, SqliteBenchmarks};
 use reqwest::blocking::Client;
 use rmcp::{ServiceExt, model::CallToolRequestParams, transport::TokioChildProcess};
 use serde_json::{Value, json};
 use std::{fs, net::TcpListener, process::Stdio, sync::Arc, time::Duration};
 
 /// Tools that may contact Garmin; everything else stays local.
-pub(super) const GARMIN_TOOLS: [&str; 13] = [
+pub(super) const GARMIN_TOOLS: [&str; 15] = [
     "sync_coach_v1",
+    "reschedule_coach_session_v1",
+    "reconcile_coach_reschedule_v1",
     "sync_activities_v1",
     "sync_health_v1",
     "sync_strength_v1",
@@ -253,7 +255,7 @@ fn http_garmin_writes_require_grant_journal_the_request_and_report_refusals() ->
         .output()?;
     let review: Value = serde_json::from_slice(&review.stdout)?;
     assert_eq!(review["mcp_request"], format!("{REQUEST}\n{REQUEST}"));
-    let text = std::process::Command::new(env!("CARGO_BIN_EXE_pace"))
+    let text = std::process::Command::new(env!("CARGO_BIN_EXE_stride"))
         .arg("--config")
         .arg(&fixture.config)
         .args(["workout", "review", "--id", "1"])
@@ -327,7 +329,7 @@ async fn stdio_flag_enables_benchmark_save_and_reconcile() -> Result<()> {
     let log_path = fixture.directory.path().join("stdio.log");
     let writes = server.writes.clone();
     tokio::time::timeout(Duration::from_secs(30), async {
-        let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_pace"));
+        let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_stride"));
         command
             .arg("--config")
             .arg(&fixture.config)
@@ -396,7 +398,7 @@ async fn stdio_flag_enables_benchmark_save_and_reconcile() -> Result<()> {
     let denied = Fixture::new()?;
     denied.init()?;
     tokio::time::timeout(Duration::from_secs(15), async {
-        let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_pace"));
+        let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_stride"));
         command
             .arg("--config")
             .arg(&denied.config)

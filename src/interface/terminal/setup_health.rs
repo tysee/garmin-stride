@@ -42,7 +42,7 @@ fn pace_hint(interval_ms: u64, days: u64) -> String {
         format!("{} min", seconds.div_ceil(60))
     };
     format!(
-        "Garmin limits request bursts, so Pace spaces requests {interval_ms} ms apart: at least {duration} for {days} days. If Garmin still answers 'too many requests', Pace waits as asked and slows down."
+        "Garmin limits request bursts, so Stride spaces requests {interval_ms} ms apart: at least {duration} for {days} days. If Garmin still answers 'too many requests', Stride waits as asked and slows down."
     )
 }
 

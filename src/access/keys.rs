@@ -10,6 +10,11 @@ use ring::{
 };
 use std::{io::Write, path::Path};
 
+/// Prefix that marks an access key issued by this program.
+pub const KEY_PREFIX: &str = "stride_";
+/// Prefix plus 43 characters of unpadded URL-safe base64 for 32 random bytes.
+pub const KEY_LENGTH: usize = KEY_PREFIX.len() + 43;
+
 /// A newly generated key, retained only long enough to write its private delivery file.
 pub struct NewKey {
     token: String,
@@ -23,7 +28,7 @@ impl NewKey {
         SystemRandom::new()
             .fill(&mut bytes)
             .map_err(|_| anyhow::anyhow!("secure random generator unavailable"))?;
-        let token = format!("pace_{}", URL_SAFE_NO_PAD.encode(bytes));
+        let token = format!("{KEY_PREFIX}{}", URL_SAFE_NO_PAD.encode(bytes));
         let hash = digest::digest(&digest::SHA256, token.as_bytes())
             .as_ref()
             .to_vec();
@@ -56,11 +61,11 @@ impl NewKey {
 /// Validate the external key encoding before computing its registry lookup digest.
 pub fn key_digest(token: &str) -> Result<Vec<u8>> {
     ensure!(
-        token.len() == 48 && token.starts_with("pace_"),
+        token.len() == KEY_LENGTH && token.starts_with(KEY_PREFIX),
         "invalid access key"
     );
     let bytes = URL_SAFE_NO_PAD
-        .decode(&token[5..])
+        .decode(&token[KEY_PREFIX.len()..])
         .map_err(|_| anyhow::anyhow!("invalid access key"))?;
     ensure!(bytes.len() == 32, "invalid access key");
     Ok(digest::digest(&digest::SHA256, token.as_bytes())

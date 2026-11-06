@@ -1,6 +1,6 @@
 //! src/installation/check.rs verifies local HTTP and trusted HTTPS without leaking keys to DNS targets.
 //! Its bounded readiness adapters distinguish local authorization from unauthenticated DNS-path checks;
-//! probe_service tells the menu, without a key, whether Pace already serves its listener.
+//! probe_service tells the menu, without a key, whether Stride already serves its listener.
 
 use super::{PublicDomain, receipt_key, validate_listener};
 use crate::config::Settings;
@@ -61,13 +61,13 @@ fn authorized_health(response: Response) -> Result<()> {
     Ok(())
 }
 
-/// Pace answers a keyless request with its own Bearer challenge.
-fn pace_challenge(response: &Response) -> bool {
+/// Stride answers a keyless request with its own Bearer challenge.
+fn stride_challenge(response: &Response) -> bool {
     response.status() == StatusCode::UNAUTHORIZED
         && response
             .headers()
             .get(WWW_AUTHENTICATE)
-            .is_some_and(|value| value == "Bearer realm=\"garmin-pace\"")
+            .is_some_and(|value| value == "Bearer realm=\"garmin-stride\"")
 }
 
 fn anonymous_rejected(client: &Client, url: &str) -> Result<()> {
@@ -76,7 +76,7 @@ fn anonymous_rejected(client: &Client, url: &str) -> Result<()> {
         .send()
         .context("checking access without credentials")?;
     ensure!(
-        pace_challenge(&response),
+        stride_challenge(&response),
         "the endpoint must reject unauthenticated requests with the MCP Bearer challenge"
     );
     Ok(())
@@ -102,7 +102,7 @@ pub fn probe_service(settings: &Settings) -> Result<ServiceProbe> {
     let client = http_client(timeout).build()?;
     let url = format!("http://{}/api/v1/health", SocketAddr::new(ip, bind.port()));
     Ok(match client.get(&url).send() {
-        Ok(response) if pace_challenge(&response) => ServiceProbe::Running,
+        Ok(response) if stride_challenge(&response) => ServiceProbe::Running,
         Ok(_) => ServiceProbe::OtherProgram,
         Err(error) if error.is_connect() || error.is_timeout() => ServiceProbe::NotRunning,
         Err(error) => return Err(error).context("checking the local MCP listener"),

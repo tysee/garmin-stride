@@ -9,10 +9,10 @@ use std::{fs, io::ErrorKind, path::Path, process::Command};
 /// Podman writes this file into every container it starts.
 const CONTAINER_ENV: &str = "/run/.containerenv";
 /// The unit deploy/install.sh installs; keep in sync with its UNIT variable.
-const UNIT_PATH: &str = "/etc/systemd/system/garmin-pace.service";
-pub const UNIT_NAME: &str = "garmin-pace.service";
+const UNIT_PATH: &str = "/etc/systemd/system/garmin-stride.service";
+pub const UNIT_NAME: &str = "garmin-stride.service";
 /// The HTTPS proxy unit deploy/https.sh installs; keep in sync with its HTTPS_UNIT variable.
-pub const HTTPS_UNIT_NAME: &str = "garmin-pace-https.service";
+pub const HTTPS_UNIT_NAME: &str = "garmin-stride-https.service";
 
 /// The process supervisor available to this menu.
 #[derive(Debug, PartialEq)]

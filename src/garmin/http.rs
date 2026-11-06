@@ -153,7 +153,7 @@ impl GarminHttp {
                     attempt += 1;
                 }
                 Err(error) => bail!(
-                    "Garmin network request to {} failed: {}; writes may have an uncertain outcome and must not be repeated blindly. Run `pace doctor` to check the network path",
+                    "Garmin network request to {} failed: {}; writes may have an uncertain outcome and must not be repeated blindly. Run `stride doctor` to check the network path",
                     host(&self.base),
                     describe(&error, &self.settings)
                 ),

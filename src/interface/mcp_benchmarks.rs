@@ -64,7 +64,7 @@ struct ActivityInput {
 #[tool_router(router = benchmark_tools, vis = "pub(super)")]
 impl HistoryMcp {
     #[tool(
-        description = "List locally imported Garmin benchmark exercises and their current 1RM values; null means not set. Empty catalogue means sync strength data in Pace first. Do not proactively change filled entries. Only propose on a user's actual request or when an unset benchmark is required for a specific workout draft.",
+        description = "List locally imported Garmin benchmark exercises and their current 1RM values; null means not set. Empty catalogue means sync strength data in Stride first. Do not proactively change filled entries. Only propose on a user's actual request or when an unset benchmark is required for a specific workout draft.",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -137,7 +137,7 @@ impl HistoryMcp {
         result(value)
     }
     #[tool(
-        description = "Store a LOCAL model estimate based on get_benchmark_context_v1. Derive representative load/reps and estimated 1RM from this user's recent observed averages; explain the method, reasoning, data limits and confidence. Origin must record an actual explicit user request (required to change a filled benchmark), or missing_for_workout with the current ID/revision of an unsaved draft using this unset exercise and why it needs the benchmark. Never invent user authorization. No automatic refresh or Garmin write occurs; the user reviews and saves in Pace or explicitly asks you to call save_benchmark_draft_to_garmin_v1. After an uncertain response, inspect proposals before calling again.",
+        description = "Store a LOCAL model estimate based on get_benchmark_context_v1. Derive representative load/reps and estimated 1RM from this user's recent observed averages; explain the method, reasoning, data limits and confidence. Origin must record an actual explicit user request (required to change a filled benchmark), or missing_for_workout with the current ID/revision of an unsaved draft using this unset exercise and why it needs the benchmark. Never invent user authorization. No automatic refresh or Garmin write occurs; the user reviews and saves in Stride or explicitly asks you to call save_benchmark_draft_to_garmin_v1. After an uncertain response, inspect proposals before calling again.",
         annotations(
             read_only_hint = false,
             destructive_hint = false,

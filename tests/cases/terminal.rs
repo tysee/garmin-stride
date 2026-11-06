@@ -43,7 +43,7 @@ impl Session {
             if explicit { &["ui", "--compact"] } else { &[] },
             key,
         )?;
-        session.until("Pace / Actions")?;
+        session.until("Stride / Actions")?;
         Ok(session)
     }
 
@@ -76,7 +76,7 @@ impl Session {
             },
         )?;
         let original = tcgetattr(&slave)?;
-        let mut command = Command::new(env!("CARGO_BIN_EXE_pace"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_stride"));
         command
             .arg("--config")
             .arg(&fixture.config)
@@ -168,7 +168,7 @@ impl Session {
 
     fn home(&mut self) -> Result<()> {
         self.send(b"\r")?;
-        self.until("Pace / Actions")?;
+        self.until("Stride / Actions")?;
         self.send(b"\x1b")?;
         self.until("Search actions")
     }
@@ -478,7 +478,7 @@ fn terminal_setup_history_and_draft_cancel_flow() -> Result<()> {
     session.send(b"\x1b")?;
     session.until("Activities 1-3")?;
     session.send(b"\x1b")?;
-    session.until("Pace / Actions")?;
+    session.until("Stride / Actions")?;
     session.send(b"\x1b")?;
     session.until("Search actions")?;
     crate::workouts::seed_draft(&fixture)?;
@@ -511,14 +511,14 @@ fn compact_terminal_resizes_recovers_errors_and_ignores_paste() -> Result<()> {
     let fixture = Fixture::new()?;
     fixture.init()?;
     let mut session = Session::start(&fixture, 40, 15, true)?;
-    session.until("Pace / Actions")?;
+    session.until("Stride / Actions")?;
     session.until("(for Garmin)")?;
     session.send(b"\x1b[B\x1b[B")?;
     session.until("> • Activities")?;
     session.send(b"\r")?;
     session.until("Activities: none stored")?;
     session.send(b"\x1b")?;
-    session.until("Pace / Actions")?;
+    session.until("Stride / Actions")?;
     session.send(b"\x1b[200~/garmin login\r\x1b[201~")?;
     session.send(b"/no such action")?;
     session.until("No matching actions")?;
@@ -552,7 +552,7 @@ fn compact_terminal_resizes_recovers_errors_and_ignores_paste() -> Result<()> {
             ws_ypixel: 0,
         },
     )?;
-    session.until("Pace / Actions")?;
+    session.until("Stride / Actions")?;
     session.search("garmin login")?;
     // Do not submit credentials; cancel at the ordinary email prompt with EOF.
     session.until("Garmin email:")?;
@@ -627,7 +627,7 @@ fn benchmark_menu_reviews_evidence_and_cancels_save_at_all_sizes() -> Result<()>
         session.until("barbell row_")?;
         assert_eq!(
             service.draft(1)?.state,
-            garmin_pace::workouts::DraftState::Draft
+            garmin_stride::workouts::DraftState::Draft
         );
         session.exit()?;
     }
@@ -645,7 +645,7 @@ fn empty_benchmark_proposals_explain_how_a_model_proposes_through_mcp() -> Resul
     session.until("Proposals: none yet")?;
     session.until("nothing is requested from it")?;
     session.search("How to get a proposal")?;
-    session.until("Use your model connected to Pace through MCP")?;
+    session.until("Use your model connected to Stride through MCP")?;
     session.send(b"\x1b")?;
     session.until("Proposals: none yet")?;
     session.exit()

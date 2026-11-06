@@ -243,7 +243,7 @@ fn unauthorized() -> Response {
     (
         StatusCode::UNAUTHORIZED,
         [
-            (header::WWW_AUTHENTICATE, "Bearer realm=\"garmin-pace\""),
+            (header::WWW_AUTHENTICATE, "Bearer realm=\"garmin-stride\""),
             (header::CACHE_CONTROL, "no-store"),
         ],
     )

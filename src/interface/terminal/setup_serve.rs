@@ -1,5 +1,5 @@
 //! src/interface/terminal/setup_serve.rs runs onboarding step 10: keep MCP serving.
-//! App::start_mcp checks once whether Pace already answers on the server config's listener,
+//! App::start_mcp checks once whether Stride already answers on the server config's listener,
 //! then follows the supervisor: systemd status with a sudo start on Linux hosts, the
 //! detached-container plus `podman exec` menu scheme in Podman, or foreground serving.
 
@@ -39,12 +39,12 @@ impl App {
         let running = probe == ServiceProbe::Running;
         match installation::detect_supervisor()? {
             Supervisor::Container { image } if running => {
-                self.view.result("Start MCP", &format!("√ MCP is running in this container (listener {bind}).\nClosing this menu does not stop it.\n\nClients on this computer: http://127.0.0.1:PORT/api/v1/mcp with the header Authorization: Bearer <key>, where PORT is the host side of -p in your podman run command.\nImage: {}\nLogs: podman logs -f garmin-pace-dev\nStop: podman stop garmin-pace-dev", image.as_deref().unwrap_or("not recorded by Podman")))?;
+                self.view.result("Start MCP", &format!("√ MCP is running in this container (listener {bind}).\nClosing this menu does not stop it.\n\nClients on this computer: http://127.0.0.1:PORT/api/v1/mcp with the header Authorization: Bearer <key>, where PORT is the host side of -p in your podman run command.\nImage: {}\nLogs: podman logs -f garmin-stride-dev\nStop: podman stop garmin-stride-dev", image.as_deref().unwrap_or("not recorded by Podman")))?;
             }
             Supervisor::Container { image } => self.container_scheme(server, &settings, image)?,
             Supervisor::Systemd => self.systemd_service(server, &settings, running)?,
             Supervisor::None if running => {
-                self.view.result("Start MCP", &format!("√ Another Pace process already serves MCP on {bind}.\nNothing to start. Clients use http://{bind}/api/v1/mcp with Authorization: Bearer <key>."))?;
+                self.view.result("Start MCP", &format!("√ Another Stride process already serves MCP on {bind}.\nNothing to start. Clients use http://{bind}/api/v1/mcp with Authorization: Bearer <key>."))?;
             }
             Supervisor::None => self.foreground(server, &settings)?,
         }
@@ -71,9 +71,9 @@ impl App {
         image: Option<String>,
     ) -> Result<()> {
         let port = settings.http.bind.port();
-        let image = image.unwrap_or_else(|| "localhost/garmin-pace:dev".into());
+        let image = image.unwrap_or_else(|| "localhost/garmin-stride:dev".into());
         let text = format!(
-            "× MCP is not running in this container.\n\nThis menu is probably the container's main process: a container started with --rm -it stops, with everything in it, when the menu closes. Run the server in its own detached container and open this menu inside it instead.\n\n1. Leave this menu (Ctrl-C), then start the server; replace VOLUME with the volume from your current -v VOLUME:/data:\n\npodman run -d --name garmin-pace-dev \\\n  --read-only --cap-drop all \\\n  --security-opt no-new-privileges \\\n  --memory 128m --pids-limit 64 \\\n  -p 127.0.0.1:{port}:{port} \\\n  -v VOLUME:/data \\\n  {image} serve --transport http\n\n2. Open this menu in that container:\n\npodman exec -it garmin-pace-dev \\\n  /app/pace --config {} setup\n\nPrefix podman with `mise exec --` when Podman comes from mise. With the default volume, `mise run container:run` starts the server and `mise run container:menu` opens the main menu there, with Onboarding first. Keys issued in the menu work at once; closing the menu leaves MCP running. 127.0.0.1 keeps it private to this computer.",
+            "× MCP is not running in this container.\n\nThis menu is probably the container's main process: a container started with --rm -it stops, with everything in it, when the menu closes. Run the server in its own detached container and open this menu inside it instead.\n\n1. Leave this menu (Ctrl-C), then start the server; replace VOLUME with the volume from your current -v VOLUME:/data:\n\npodman run -d --name garmin-stride-dev \\\n  --read-only --cap-drop all \\\n  --security-opt no-new-privileges \\\n  --memory 128m --pids-limit 64 \\\n  -p 127.0.0.1:{port}:{port} \\\n  -v VOLUME:/data \\\n  {image} serve --transport http\n\n2. Open this menu in that container:\n\npodman exec -it garmin-stride-dev \\\n  /app/stride --config {} setup\n\nPrefix podman with `mise exec --` when Podman comes from mise. With the default volume, `mise run container:run` starts the server and `mise run container:menu` opens the main menu there, with Onboarding first. Keys issued in the menu work at once; closing the menu leaves MCP running. 127.0.0.1 keeps it private to this computer.",
             server.display()
         );
         self.view.result("Start MCP", &text)?;

@@ -5,9 +5,9 @@ tools through mise. Do not install tools or dependencies without authorization.
 
 ## Deployment and scope
 
-- Project/package: `garmin-pace`; executable: `pace`; Rust library: `garmin_pace`.
+- Project/package: `garmin-stride`; executable: `stride`; Rust library: `garmin_stride`.
   Project mise config adds the development binary directory to PATH and supplies
-  `GARMIN_PACE_CONFIG`; explicit `--config` overrides it. HTTP credentials are issued with `pace users issue-key` and checked against the
+  `GARMIN_STRIDE_CONFIG`; explicit `--config` overrides it. HTTP credentials are issued with `stride users issue-key` and checked against the
   local access registry on every request. The shared environment token is retired. Configuration remains required outside that environment.
 
 - Rust executable with embedded SQLite; Linux ARM64 on CardputerZero / Raspberry
@@ -18,8 +18,8 @@ tools through mise. Do not install tools or dependencies without authorization.
 - Garmin activity reads use the official Personal API. Strength exercise sets and
   Connect workout writes require a separate native OAuth session created by interactive `garmin login`. Report only observed synchronization
   and delivery states; FIT ingestion remains deferred.
-- CLI technical output, terminal menus, and API contracts use English. `pace`
-  without a subcommand opens a TTY-only interactive menu; `pace ui --compact`
+- CLI technical output, terminal menus, and API contracts use English. `stride`
+  without a subcommand opens a TTY-only interactive menu; `stride ui --compact`
   forces its small-screen layout. The browser surface is limited to Swagger API documentation.
 
 ## Boundaries
@@ -37,8 +37,8 @@ tools through mise. Do not install tools or dependencies without authorization.
   never disabled. Network failures are classified (DNS, proxy unreachable, tunnel
   refused, untrusted certificate, timeout, refused) with host and redacted route only;
   the environment route is decided per URL by reqwest's own hyper-util matcher (NO_PROXY).
-  `pace doctor` probes each Garmin host once without keys through the same client.
-  `pace config network` and the menu's Garmin network screen edit only those two `[garmin]`
+  `stride doctor` probes each Garmin host once without keys through the same client.
+  `stride config network` and the menu's Garmin network screen edit only those two `[garmin]`
   lines in place (`src/config/network.rs`, no TOML editing dependency): a re-parse must show
   no other change, the candidate loads and builds the client, then replaces the file atomically.
 - `src/health/`: pure metric/date types and bounded sync/read services; SQLite and
@@ -57,7 +57,7 @@ tools through mise. Do not install tools or dependencies without authorization.
   ordering, outcomes and the SQLite run journal (`sync_runs`, windows and step results; newest
   20 runs kept). A missing credential skips its step with the reason; the first failed window
   ends only its step. `--resume` continues the latest unfinished run, skipping done windows;
-  a new run always refetches. CLI `pace sync` and the menu's Sync everything (and onboarding's
+  a new run always refetches. CLI `stride sync` and the menu's Sync everything (and onboarding's
   first full download) share it; MCP keeps its bounded one-dataset sync tools.
 - `src/workouts/`: pure workout definitions, library/draft use cases and repository
   ports; document and SQLite adapters. Models author versioned local drafts through
@@ -79,8 +79,17 @@ tools through mise. Do not install tools or dependencies without authorization.
   author; never performs autonomous adaptation. Source-linked Coach drafts require
   an explanation. Relative strength load and minimum repetitions are preserved;
   load modes are exclusive. Saves retain the plan identity and verify it on read-back.
-  Calendar rescheduling, Coach preferences and the adaptive algorithm remain outside
-  this scope. Repeated schedule entries may share a workout definition. The terminal
+  One scheduled session can be moved to another Garmin calendar date by its schedule
+  ID: the session must exist in an imported local window, the move is journaled in
+  `coach_reschedules` before Garmin is contacted, the adapter reads the calendar entry,
+  refuses a changed date or workout (conflict), PUTs only the new date and workout ID,
+  and reads the entry back. HTTP 4xx closes the row as `not_applied`; an uncertain outcome
+  stays `moving` until an explicit reconcile (GET only) or the CLI/menu clear; an entry
+  Garmin no longer returns is recorded as `missing`. Garmin decides which plans allow a
+  move and how far; Stride enforces no date policy beyond distinct valid dates. Shifting
+  the rest of a plan, Coach preferences and the adaptive algorithm remain outside this
+  scope. A moved session leaves both affected local windows stale until they are synced
+  again. Repeated schedule entries may share a workout definition. The terminal
   separates standalone Workouts from Coach weeks; navigation is local and only
   explicit Sync contacts Garmin. The initial week is labelled as UTC; users can
   choose the dates in Garmin calendar terms. The standalone library filter has a
@@ -116,7 +125,7 @@ tools through mise. Do not install tools or dependencies without authorization.
   Main-menu state hints and quick sync shortcuts do not alter onboarding.
 - `src/interface/terminal/`: terminal lifecycle, keyboard input, menu state and
   rendering; invokes the same CLI dispatcher and public feature boundaries.
-  Network work is explicit and one-shot, with no idle network polling. `pace setup`
+  Network work is explicit and one-shot, with no idle network polling. `stride setup`
   and the Onboarding menu reuse CLI commands for profile preparation, initial imports
   and access administration. Start MCP first probes the server config's listener once without a key.
   With the installer's systemd unit it shows the unit state and can enable it via sudo;
@@ -151,7 +160,8 @@ tools through mise. Do not install tools or dependencies without authorization.
 - SQLite failure is critical and explicit. Garmin failures preserve
   local history with an explicit last-successful-sync timestamp. Sync is a bounded
   one-shot operation with no background polling. MCP contacts Garmin only through the
-  granted tools (sync, refresh, save, reconcile, send, device list) under the same authenticated
+  granted tools (sync, refresh, save, reconcile, send, device list, Coach reschedule and its
+  reconcile) under the same authenticated
   profile: one Garmin operation per process at a time, on a dedicated thread outside the
   blocking pool that outlives the HTTP request timeout, never automatically and never on
   retry; the draft state and local delivery journal are the source of truth after a timeout.
@@ -198,7 +208,7 @@ tools through mise. Do not install tools or dependencies without authorization.
   There are no network calls in this authorization path and no grant cache.
 - Private Unix storage is required for SQLite and credentials. Do not log protocol
   payloads: only application tracing targets are enabled, including at debug/trace.
-- `deploy/package.sh <arch>` builds `dist/pace-linux-<arch>.tar.gz` for aarch64 and
+- `deploy/package.sh <arch>` builds `dist/stride-linux-<arch>.tar.gz` for aarch64 and
   x86_64 from the Containerfile, with Caddy pins in `deploy/release.conf`.
   `.github/workflows/release.yml` runs the same scripts on native runners for `v*` tags
   only (the tag must sit on `main` and equal the crate version) and attaches both
@@ -207,7 +217,7 @@ tools through mise. Do not install tools or dependencies without authorization.
 - `deploy/` contains Linux systemd and HTTPS proxy configuration. Native MCP binds
   loopback; public access requires HTTPS ingress and a firewall excluding port 8080.
   `deploy/install.sh` is the Linux installer. Easy setup keeps the fixed destinations
-  (`/usr/local`, `/var/lib/garmin-pace`, `/etc/garmin-pace`), a dedicated service user,
+  (`/usr/local`, `/var/lib/garmin-stride`, `/etc/garmin-stride`), a dedicated service user,
   automatic profile paths and authenticated readiness before enabling boot startup;
   advanced setup chooses the program and data directories and a system or user-only
   install, and `--yes --system|--user --key-lifetime ...` answers everything from flags
@@ -215,12 +225,12 @@ tools through mise. Do not install tools or dependencies without authorization.
   directories are recorded in `install.env` and never moved by a later run. System mode
   requires root or passwordless sudo plus systemd and fails fast otherwise; user mode has
   no service account, no unit and no HTTPS, and the caller keeps `serve` running. The
-  binary goes to `<prefix>/lib/garmin-pace/pace`; the generated `<prefix>/bin/pace`
-  launcher exports `GARMIN_PACE_CONFIG` (unless already set) for the last installed profile
+  binary goes to `<prefix>/lib/garmin-stride/stride`; the generated `<prefix>/bin/stride`
+  launcher exports `GARMIN_STRIDE_CONFIG` (unless already set) for the last installed profile
   and runs every command, the menu included, with it; system mode runs it as the service
   account (`sudo -n` without a terminal). Loopback readiness checks do not need system trust roots. It installs bundled assets only, never downloads packages.
-  Optional HTTPS uses pinned bundled Caddy as a separate `pace-https` OS user and
-  `garmin-pace-https.service`, with private certificate storage separate from Garmin.
+  Optional HTTPS uses pinned bundled Caddy as a separate `stride-https` OS user and
+  `garmin-stride-https.service`, with private certificate storage separate from Garmin.
   The wizard owns its generated proxy configuration, validates public domain input,
   and checks trusted TLS locally before sending a key. DNS-path checks send no keys.
   The menu's Internet access screen reads the recorded domain and unit state, runs the

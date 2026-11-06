@@ -22,13 +22,13 @@ use crate::{
 /// Command-line contract for local configuration, diagnostics, and MCP serving.
 #[derive(Parser)]
 #[command(
-    name = "pace",
+    name = "stride",
     version,
     about,
-    after_help = "Run 'pace help --all' to list every command and its flags."
+    after_help = "Run 'stride help --all' to list every command and its flags."
 )]
 pub struct Cli {
-    #[arg(long, env = "GARMIN_PACE_CONFIG")]
+    #[arg(long, env = "GARMIN_STRIDE_CONFIG")]
     config: PathBuf,
     /// Read the Garmin key from this private dotenv file instead of the profile's garmin.env.
     #[arg(long, global = true)]
@@ -40,7 +40,7 @@ pub struct Cli {
     command: Option<Command>,
 }
 
-/// The full command reference for exactly `pace help --all`, read before parsing so it needs
+/// The full command reference for exactly `stride help --all`, read before parsing so it needs
 /// no --config, like clap's own help.
 pub fn full_help(args: impl IntoIterator<Item = OsString>) -> Option<String> {
     let args: Vec<OsString> = args.into_iter().skip(1).collect();
@@ -147,7 +147,7 @@ pub(super) enum Command {
     },
     /// Show local history and Garmin integration status.
     Status,
-    /// Check HTTPS to every Garmin host through Pace's own client, without sending keys.
+    /// Check HTTPS to every Garmin host through Stride's own client, without sending keys.
     Doctor,
     /// Read locally stored activities.
     Activities {
@@ -443,7 +443,7 @@ pub(super) fn execute(
             output.activities(history(&settings)?.list(limit, offset)?)
         }
         Command::Setup { .. } | Command::Ui { .. } => {
-            anyhow::bail!("interactive commands require a terminal; run pace or pace setup")
+            anyhow::bail!("interactive commands require a terminal; run stride or stride setup")
         }
     }
 }
@@ -468,7 +468,7 @@ fn network_text(network: &config::GarminNetwork, changed: bool) -> String {
     );
     let mut text = format!("Proxy: {proxy}\nExtra CA file: {ca}");
     if changed {
-        text.push_str("\n\nSaved. A running MCP server applies it after a restart.\nCheck the Garmin path with pace doctor.");
+        text.push_str("\n\nSaved. A running MCP server applies it after a restart.\nCheck the Garmin path with stride doctor.");
     }
     text
 }
@@ -558,7 +558,7 @@ fn initialize_logging(settings: &Settings) -> Result<()> {
                 .json()
                 .with_writer(std::io::stderr)
                 .with_filter(
-                    tracing_subscriber::filter::Targets::new().with_target("garmin_pace", level),
+                    tracing_subscriber::filter::Targets::new().with_target("garmin_stride", level),
                 ),
         )
         .try_init()

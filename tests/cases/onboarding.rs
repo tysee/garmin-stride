@@ -12,7 +12,7 @@ use std::{
 
 fn back(session: &mut Session) -> Result<()> {
     session.send(b"\r")?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     session.send(b"\x1b")?;
     session.until("Search actions")
 }
@@ -22,9 +22,9 @@ fn onboarding_prepares_profile_and_issues_private_access_key() -> Result<()> {
     let fixture = Fixture::new()?;
     std::fs::remove_file(&fixture.config)?;
     let mut session = Session::start(&fixture, 100, 28, false)?;
-    session.until("Pace / Actions")?;
+    session.until("Stride / Actions")?;
     session.search("onboarding")?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     session.until("× 1. Prepare profile")?;
     session.until("0/9 ready")?;
     assert!(!fixture.config.exists());
@@ -61,7 +61,7 @@ fn onboarding_prepares_profile_and_issues_private_access_key() -> Result<()> {
     let token = session
         .received
         .split(|c: char| !(c.is_ascii_alphanumeric() || c == '_' || c == '-'))
-        .find(|word| word.starts_with("pace_") && word.len() == 48)
+        .find(|word| word.starts_with("stride_") && word.len() == 50)
         .context("revealed key")?
         .to_string();
     assert!(!fixture.directory.path().join("alice.key").exists());
@@ -81,7 +81,7 @@ fn onboarding_prepares_profile_and_issues_private_access_key() -> Result<()> {
     session.send(b"\r")?;
     session.until("> Cancel")?;
     session.send(b"\r")?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     assert!(std::net::TcpStream::connect(address).is_err());
     session.send(b"\r")?;
     session.until("Review action")?;
@@ -141,7 +141,7 @@ fn onboarding_hides_pasted_credentials_and_imports_from_garmin() -> Result<()> {
     ])?;
     configure(&fixture, &server.base)?;
     let mut session = Session::start_args(&fixture, 100, 28, &["setup", "--compact"])?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     session.until("× 2. Personal API key")?;
     session.search("personal api key")?;
     session.until("Get Garmin key")?;
@@ -152,13 +152,13 @@ fn onboarding_hides_pasted_credentials_and_imports_from_garmin() -> Result<()> {
     // Surrounding copy artifacts are trimmed; a pasted newline cannot submit the field.
     session.send(b"\x1b[200~ fixture-api-key-never-real \n\x1b[201~")?;
     session.until("28 characters received")?;
-    let path = garmin_pace::secrets::profile_key_path(&fixture.settings.database.path)?;
+    let path = garmin_stride::secrets::profile_key_path(&fixture.settings.database.path)?;
     assert!(!path.exists());
     session.send(b"\r")?;
     session.until("Garmin accepted the key")?;
     assert!(!session.received.contains("fixture-api-key-never-real"));
     assert_eq!(
-        garmin_pace::secrets::Secrets::load(Some(&path))?.require("GARMIN_PERSONAL_API_KEY")?,
+        garmin_stride::secrets::Secrets::load(Some(&path))?.require("GARMIN_PERSONAL_API_KEY")?,
         "fixture-api-key-never-real"
     );
     back(&mut session)?;
@@ -187,7 +187,7 @@ fn onboarding_hides_pasted_credentials_and_imports_from_garmin() -> Result<()> {
 
 #[test]
 fn private_credential_creation_round_trips_and_never_overwrites() -> Result<()> {
-    use garmin_pace::secrets::Secrets;
+    use garmin_stride::secrets::Secrets;
     let directory = tempfile::tempdir()?;
     let path = directory.path().join("private.env");
     let key = r#"fixture-'quote"-backslash\-dollar$HOME-${HOME}"#;
@@ -212,12 +212,12 @@ fn setup_can_be_cancelled_before_any_changes_and_reopened() -> Result<()> {
     let fixture = Fixture::new()?;
     fs::remove_file(&fixture.config)?;
     let mut session = Session::start_args(&fixture, 40, 15, &["setup", "--compact"])?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     session.exit()?;
     assert!(!fixture.config.exists());
     assert!(!fixture.settings.database.path.exists());
     let mut session = Session::start_args(&fixture, 100, 28, &["setup"])?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     session.until("Config not created yet")?;
     session.search("prepare profile")?;
     session.until("Profile ready.")?;
@@ -227,8 +227,8 @@ fn setup_can_be_cancelled_before_any_changes_and_reopened() -> Result<()> {
     session.send(b"\r")?;
     session.until("Paste Personal API key")?;
     session.send(b"fixture-cancelled-secret\x1b")?;
-    session.until("Pace / Onboarding")?;
-    let path = garmin_pace::secrets::profile_key_path(&fixture.settings.database.path)?;
+    session.until("Stride / Onboarding")?;
+    let path = garmin_stride::secrets::profile_key_path(&fixture.settings.database.path)?;
     assert!(!session.received.contains("fixture-cancelled-secret"));
     assert!(!path.exists());
     session.exit()
@@ -238,10 +238,10 @@ fn setup_can_be_cancelled_before_any_changes_and_reopened() -> Result<()> {
 fn onboarding_finds_the_saved_profile_key_without_prompting() -> Result<()> {
     let fixture = Fixture::new()?;
     fixture.init()?;
-    let path = garmin_pace::secrets::profile_key_path(&fixture.settings.database.path)?;
-    garmin_pace::secrets::Secrets::save_personal_key(&path, "fixture-saved-key-never-real")?;
+    let path = garmin_stride::secrets::profile_key_path(&fixture.settings.database.path)?;
+    garmin_stride::secrets::Secrets::save_personal_key(&path, "fixture-saved-key-never-real")?;
     let mut session = Session::start_args(&fixture, 100, 28, &["setup"])?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     session.until("~ 2. Personal API key")?;
     session.search("personal api key")?;
     session.until("Personal API key found.")?;
@@ -285,15 +285,15 @@ fn onboarding_imports_a_long_health_range_in_windows_with_progress() -> Result<(
         &fixture.config,
         fs::read_to_string(&fixture.config)?.replace("max_days = 31", "max_days = 2"),
     )?;
-    let path = garmin_pace::secrets::profile_key_path(&fixture.settings.database.path)?;
-    garmin_pace::secrets::Secrets::save_personal_key(&path, "fixture-api-key-never-real")?;
+    let path = garmin_stride::secrets::profile_key_path(&fixture.settings.database.path)?;
+    garmin_stride::secrets::Secrets::save_personal_key(&path, "fixture-api-key-never-real")?;
     let mut session = Session::start_args(&fixture, 100, 28, &["setup"])?;
     session.until("No health days saved yet")?;
     session.search("import health")?;
     session.until("END defaults to today")?;
     session.send(b"2026-10-22 2026-10-24\r")?;
     session.until("Import 3 days of health data?")?;
-    session.until("Pace spaces requests 1 ms apart")?;
+    session.until("Stride spaces requests 1 ms apart")?;
     session.send(b"\r")?;
     session.until("> Cancel")?;
     session.send(b"\x1b[B\r")?;
@@ -327,7 +327,7 @@ fn mcp_users_screen_lists_users_and_key_state() -> Result<()> {
         );
     }
     let mut session = Session::start(&fixture, 100, 28, false)?;
-    session.until("Pace / Actions")?;
+    session.until("Stride / Actions")?;
     session.search("mcp users")?;
     session.until("> alice")?;
     session.until("× no active key")?;
@@ -363,9 +363,9 @@ fn start_mcp_recognizes_a_server_that_already_runs_without_a_terminal() -> Resul
         .build()?;
     crate::mcp::wait_for_http(&client, &format!("http://{address}/api/v1"), &token)?;
     let mut session = Session::start_args(&fixture, 100, 28, &["setup"])?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     session.search("start mcp")?;
-    session.until("Another Pace process already serves MCP")?;
+    session.until("Another Stride process already serves MCP")?;
     session.exit()?;
     server.stop()?;
     Ok(())
@@ -382,10 +382,10 @@ fn onboarding_imports_activities_for_a_date_period() -> Result<()> {
     let fixture = Fixture::new()?;
     fixture.init()?;
     configure(&fixture, &server.base)?;
-    let path = garmin_pace::secrets::profile_key_path(&fixture.settings.database.path)?;
-    garmin_pace::secrets::Secrets::save_personal_key(&path, "fixture-api-key-never-real")?;
+    let path = garmin_stride::secrets::profile_key_path(&fixture.settings.database.path)?;
+    garmin_stride::secrets::Secrets::save_personal_key(&path, "fixture-api-key-never-real")?;
     let mut session = Session::start_args(&fixture, 100, 28, &["setup"])?;
-    session.until("Pace / Onboarding")?;
+    session.until("Stride / Onboarding")?;
     session.search("import activities")?;
     session.until("Activities in a period")?;
     session.send(b"\x1b[B\r")?;
@@ -400,7 +400,7 @@ fn onboarding_imports_activities_for_a_date_period() -> Result<()> {
 
 #[test]
 fn status_marks_an_expired_token_and_an_unfinished_full_sync_as_partial() -> Result<()> {
-    use garmin_pace::sync::{Period, SqliteSyncJournal, Step, StepSource, SyncService, Window};
+    use garmin_stride::sync::{Period, SqliteSyncJournal, Step, StepSource, SyncService, Window};
     use std::ops::ControlFlow;
     struct Unavailable(Step);
     impl StepSource for Unavailable {
@@ -450,9 +450,9 @@ fn status_marks_an_expired_token_and_an_unfinished_full_sync_as_partial() -> Res
         &mut |_| ControlFlow::Continue(()),
     )?;
     let mut session = Session::start_args(&fixture, 120, 30, &[])?;
-    session.until("Pace / Actions")?;
+    session.until("Stride / Actions")?;
     session.search("Status")?;
-    session.until("Pace / Status")?;
+    session.until("Stride / Status")?;
     session.until("~ Connect login")?;
     session.until("access token expired, renews on the next Garmin request")?;
     session.until("~ Full sync")?;

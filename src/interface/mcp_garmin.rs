@@ -229,7 +229,7 @@ impl HistoryMcp {
         let profile = self.profile(context)?;
         let Some(access) = profile.garmin.clone() else {
             return Err(ErrorData::invalid_params(
-                "Garmin writes are not enabled for this profile; an administrator runs `pace users allow-garmin-writes USER` (HTTP) or sets runtime.stdio_garmin_writes = true (stdio)",
+                "Garmin writes are not enabled for this profile; an administrator runs `stride users allow-garmin-writes USER` (HTTP) or sets runtime.stdio_garmin_writes = true (stdio)",
                 Some(json!({"outcome":"denied"})),
             ));
         };
@@ -271,7 +271,7 @@ fn garmin_error(error: WorkoutError) -> ErrorData {
             ErrorData::invalid_params(error.to_string(), None)
         }
         WorkoutError::Rejected(status) => ErrorData::internal_error(
-            format!("{error}; the draft or delivery is open again"),
+            format!("{error}; no save, delivery or move stays pending for it"),
             Some(json!({"outcome":"rejected","garmin_status":status})),
         ),
         WorkoutError::Uncertain => {

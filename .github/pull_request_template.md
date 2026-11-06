@@ -11,5 +11,5 @@
 
 ## Checklist
 
-- [ ] The change is focused and follows [AGENTS.md](https://github.com/tysee/garmin-pace/blob/main/AGENTS.md)
+- [ ] The change is focused and follows [AGENTS.md](https://github.com/tysee/garmin-stride/blob/main/AGENTS.md)
 - [ ] No `.env`, local config, SQLite files, tokens or real Garmin data committed

@@ -16,7 +16,7 @@ use serde_json::{Value, json};
 #[derive(Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct PageInput {
-    /// 1..100; omitted uses 20. Library is a local snapshot; refresh through Pace.
+    /// 1..100; omitted uses 20. Library is a local snapshot; refresh through Stride.
     limit: Option<usize>,
     /// Zero-based offset, at most 100000.
     offset: Option<usize>,
@@ -24,7 +24,7 @@ struct PageInput {
 #[derive(Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct LibraryInput {
-    /// 1..100; omitted uses 20. Library is a local snapshot; refresh through Pace.
+    /// 1..100; omitted uses 20. Library is a local snapshot; refresh through Stride.
     limit: Option<usize>,
     /// Zero-based offset, at most 100000.
     offset: Option<usize>,
@@ -67,7 +67,7 @@ struct ReviseInput {
 #[tool_router(router = workout_tools, vis = "pub(super)")]
 impl HistoryMcp {
     #[tool(
-        description = "List a page of the user's locally synchronized Garmin workout library. These are reusable definitions, not completed activities; standalone=true excludes Coach plan workouts. Empty means not imported or no workouts; ask the user to sync in Pace. Read a definition before editing.",
+        description = "List a page of the user's locally synchronized Garmin workout library. These are reusable definitions, not completed activities; standalone=true excludes Coach plan workouts. Empty means not imported or no workouts; ask the user to sync in Stride. Read a definition before editing.",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -112,7 +112,7 @@ impl HistoryMcp {
         .await
     }
     #[tool(
-        description = "Create a LOCAL model-authored draft. First use saved activities and health when relevant; discuss goals and constraints with the user. Submit a complete v1 definition with explicit units. If this workout needs an unset benchmark, first create the workout draft with its known exercise identity, then use get_benchmark_context_v1 and propose_benchmark_v1 with missing_for_workout and the returned draft ID/revision. Do not proactively change a filled benchmark. Supply source ID+revision to edit an existing workout; omit source for a new workout. Does not save to Garmin or send to a watch by itself; the user saves in Pace or explicitly asks you to call save_workout_draft_to_garmin_v1. Do not call twice after an uncertain tool response; inspect drafts first.",
+        description = "Create a LOCAL model-authored draft. First use saved activities and health when relevant; discuss goals and constraints with the user. Submit a complete v1 definition with explicit units. If this workout needs an unset benchmark, first create the workout draft with its known exercise identity, then use get_benchmark_context_v1 and propose_benchmark_v1 with missing_for_workout and the returned draft ID/revision. Do not proactively change a filled benchmark. Supply source ID+revision to edit an existing workout; omit source for a new workout. Does not save to Garmin or send to a watch by itself; the user saves in Stride or explicitly asks you to call save_workout_draft_to_garmin_v1. Do not call twice after an uncertain tool response; inspect drafts first.",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -174,7 +174,7 @@ impl HistoryMcp {
         .await
     }
     #[tool(
-        description = "Replace the contents of an unsaved LOCAL draft at exactly the supplied revision, retaining its original Garmin source. Use for user-requested corrections. Returns a new revision requiring another review in Pace. Cannot change a saving, saved, verified or discarded draft. Does not call Garmin; saving is a separate explicit step.",
+        description = "Replace the contents of an unsaved LOCAL draft at exactly the supplied revision, retaining its original Garmin source. Use for user-requested corrections. Returns a new revision requiring another review in Stride. Cannot change a saving, saved, verified or discarded draft. Does not call Garmin; saving is a separate explicit step.",
         annotations(
             read_only_hint = false,
             destructive_hint = true,

@@ -33,11 +33,11 @@ impl Terminal {
     pub(super) fn open() -> Result<Self> {
         ensure!(
             io::stdin().is_terminal() && io::stdout().is_terminal(),
-            "interactive mode requires a terminal on stdin and stdout; use pace --help for commands"
+            "interactive mode requires a terminal on stdin and stdout; use stride --help for commands"
         );
         ensure!(
             std::env::var("TERM").as_deref() != Ok("dumb"),
-            "interactive mode requires an ANSI terminal; use pace --help for commands"
+            "interactive mode requires an ANSI terminal; use stride --help for commands"
         );
         let mut terminal = Self {
             original: termios::tcgetattr(io::stdin()).context("reading terminal mode")?,

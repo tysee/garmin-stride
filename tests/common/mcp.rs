@@ -23,7 +23,7 @@ impl HttpMcp {
         ensure!(result.status.success(), "grant failed");
         let listener = TcpListener::bind("127.0.0.1:0")?;
         let address = listener.local_addr()?;
-        let mut config = garmin_pace::config::Settings::load(&fixture.config)?;
+        let mut config = garmin_stride::config::Settings::load(&fixture.config)?;
         config.http.bind = address;
         config.http.request_timeout_seconds = timeout;
         config.garmin.request_interval_ms = 1;

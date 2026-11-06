@@ -1,5 +1,5 @@
 //! src/interface/terminal/full_sync.rs is the menu's Sync everything: the same journaled
-//! full sync as `pace sync` (activities, strength sets, health, Coach) for Today, Yesterday,
+//! full sync as `stride sync` (activities, strength sets, health, Coach) for Today, Yesterday,
 //! Last 7 days or a custom period, plus continuing the latest unfinished run. Each choice shows
 //! exact inclusive dates before confirmation; Esc stops before the next window.
 

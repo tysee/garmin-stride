@@ -1,6 +1,6 @@
 //! src/interface/full_sync.rs composes the full-sync feature with the existing import use cases:
 //! activities, strength sets, health and Coach, each wrapped as a step adapter. It exposes the
-//! `pace sync` command, `execute` shared with the terminal menu, and the report renderers.
+//! `stride sync` command, `execute` shared with the terminal menu, and the report renderers.
 
 use super::{benchmarks, garmin, health, output::Output, workouts};
 use crate::{
@@ -40,7 +40,7 @@ fn missing_key(secrets: &Secrets) -> Option<String> {
 fn missing_login(settings: &Settings) -> Option<String> {
     match settings.garmin_auth.session_path.try_exists() {
         Ok(true) => None,
-        Ok(false) => Some("not signed in to Garmin Connect; run pace garmin login".into()),
+        Ok(false) => Some("not signed in to Garmin Connect; run stride garmin login".into()),
         Err(error) => Some(format!("cannot read the Garmin session path: {error}")),
     }
 }
@@ -183,7 +183,7 @@ pub(super) fn unfinished(settings: &Settings) -> Result<Option<crate::sync::RunR
     Ok(SyncService::new(&journal).unfinished()?)
 }
 
-/// `pace sync`: one journaled run; progress goes to stderr, the report to stdout.
+/// `stride sync`: one journaled run; progress goes to stderr, the report to stdout.
 pub(super) fn run(
     start: Option<Date>,
     end: Option<Date>,
@@ -209,7 +209,7 @@ pub(super) fn run(
     output.message(&to_json(&report), &human(&report))?;
     ensure!(
         report.state == crate::sync::RunState::Complete,
-        "full sync is {}; committed data is kept. Continue with: pace sync --resume",
+        "full sync is {}; committed data is kept. Continue with: stride sync --resume",
         report.state.key()
     );
     Ok(())
@@ -316,7 +316,7 @@ pub(super) fn human(report: &SyncReport) -> String {
         }
     }
     if report.state != crate::sync::RunState::Complete {
-        text.push_str("\nCommitted data is kept. Continue with: pace sync --resume");
+        text.push_str("\nCommitted data is kept. Continue with: stride sync --resume");
     }
     text
 }

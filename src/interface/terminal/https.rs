@@ -13,7 +13,7 @@ use anyhow::Result;
 use std::path::Path;
 
 const TITLE: &str = "Internet access (HTTPS)";
-const APPLY: &str = "This menu runs as the Pace service account and cannot change system files.\nAs an administrator with sudo, in the unpacked release folder, run:\n\n  ./install.sh --https";
+const APPLY: &str = "This menu runs as the Stride service account and cannot change system files.\nAs an administrator with sudo, in the unpacked release folder, run:\n\n  ./install.sh --https";
 const PREREQUISITES: &str = "Before applying: DNS A/AAAA records point to this device, the router forwards TCP 80 and 443, and port 8080 stays private.";
 
 /// The installed setup in the installer's terms; `state` is read only for a configured domain.
@@ -41,7 +41,7 @@ impl App {
         match supervisor {
             Supervisor::Systemd => self.https_screen(),
             Supervisor::Container { .. } => self.view.result(TITLE, "Not available in a container. Managed HTTPS needs the Linux system install from deploy/install.sh.\n\nHere, publish the container port only on 127.0.0.1 and put your own HTTPS reverse proxy in front of it.").map(drop),
-            Supervisor::None => self.view.result(TITLE, "No Pace system service on this host. Managed HTTPS (bundled Caddy) needs the Linux system install from deploy/install.sh; a user-only install has no service and no HTTPS.\n\nPublic access always needs HTTPS in front of http.bind; never expose port 8080 directly.").map(drop),
+            Supervisor::None => self.view.result(TITLE, "No Stride system service on this host. Managed HTTPS (bundled Caddy) needs the Linux system install from deploy/install.sh; a user-only install has no service and no HTTPS.\n\nPublic access always needs HTTPS in front of http.bind; never expose port 8080 directly.").map(drop),
         }
     }
 
@@ -164,7 +164,7 @@ mod tests {
         };
         let text = summary(Some(&domain), Some(&state));
         assert!(text.contains("MCP URL: https://mcp.example.org/api/v1/mcp"));
-        assert!(text.contains("garmin-pace-https.service: active, enabled at boot"));
+        assert!(text.contains("garmin-stride-https.service: active, enabled at boot"));
         let text = summary(None, None);
         assert!(text.contains("not configured") && text.contains("./install.sh --https"));
         Ok(())

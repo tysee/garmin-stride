@@ -91,7 +91,7 @@ pub(in crate::interface) fn quick_setup_batch(
 impl App {
     fn install_profile(&mut self, user: &str, server: &Path, handoff: Option<&Path>) -> Result<()> {
         self.view.context = format!("Profile: {user} | Installation wizard");
-        ensure!(self.view.result("Easy setup", "Pace will prepare your profile and a private MCP access key.\n\nYou can connect Garmin now or do it later. Saved files are kept when you return. No file paths or system commands are needed.\n\nEnter to continue; Esc to cancel.")?, "setup cancelled");
+        ensure!(self.view.result("Easy setup", "Stride will prepare your profile and a private MCP access key.\n\nYou can connect Garmin now or do it later. Saved files are kept when you return. No file paths or system commands are needed.\n\nEnter to continue; Esc to cancel.")?, "setup cancelled");
         self.view.frame(
             "Prepare profile",
             &[("Preparing private storage...".into(), Style::Plain)],
@@ -160,7 +160,7 @@ impl App {
     /// Take a hidden pasted key, check it with Garmin, then save it to a new private file.
     pub(super) fn enter_garmin_key(&mut self, settings: &Settings, path: &Path) -> Result<()> {
         loop {
-            if !self.view.result("Get Garmin key", "On your phone or computer, open Garmin Connect settings and create a Personal API key:\nhttps://connect.garmin.com/app/settings/personalApiToken\n\nCopy it, press Enter here, then paste it into hidden input. Pace checks it before saving.\nThis is different from the MCP key Pace creates for your client.")? { return Ok(()); }
+            if !self.view.result("Get Garmin key", "On your phone or computer, open Garmin Connect settings and create a Personal API key:\nhttps://connect.garmin.com/app/settings/personalApiToken\n\nCopy it, press Enter here, then paste it into hidden input. Stride checks it before saving.\nThis is different from the MCP key Stride creates for your client.")? { return Ok(()); }
             let Some(key) =
                 self.view
                     .setup_input("Garmin key", "Paste Personal API key (hidden)", true)?

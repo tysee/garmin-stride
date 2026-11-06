@@ -4,7 +4,7 @@
 use std::process::ExitCode;
 
 use clap::Parser;
-use garmin_pace::interface::cli::{Cli, full_help, run};
+use garmin_stride::interface::cli::{Cli, full_help, run};
 
 fn main() -> ExitCode {
     if let Some(text) = full_help(std::env::args_os()) {

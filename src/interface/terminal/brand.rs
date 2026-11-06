@@ -1,4 +1,4 @@
-//! src/interface/terminal/brand.rs draws Pace's ginger cat mascot beside the title.
+//! src/interface/terminal/brand.rs draws Stride's ginger cat mascot beside the title.
 //! Half-block pixel art needs no image protocol; a four-pixel face keeps compact headers short.
 
 use std::fmt::{Result, Write};
@@ -40,7 +40,7 @@ pub(super) fn draw(frame: &mut String, tall: bool, title: &str) -> Result {
                 pixel(frame, top, bottom)?;
             }
             match row {
-                1 => write!(frame, "   \x1b[1mPace{title}\x1b[0m")?,
+                1 => write!(frame, "   \x1b[1mStride{title}\x1b[0m")?,
                 2 => frame.push_str("   \x1b[90m(for Garmin)\x1b[0m"),
                 _ => {}
             }
@@ -53,7 +53,7 @@ pub(super) fn draw(frame: &mut String, tall: bool, title: &str) -> Result {
                 pixel(frame, top, bottom)?;
             }
             if row == 0 {
-                write!(frame, "  \x1b[1mPace{title}\x1b[0m")?;
+                write!(frame, "  \x1b[1mStride{title}\x1b[0m")?;
             } else {
                 frame.push_str("  \x1b[90m(for Garmin)\x1b[0m");
             }

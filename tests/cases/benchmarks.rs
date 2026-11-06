@@ -6,7 +6,7 @@ use crate::{
     garmin::{KEY, Server, TOKEN, TOKEN_PATH, configure, configure_connect},
 };
 use anyhow::{Context as _, Result, ensure};
-use garmin_pace::workouts::{
+use garmin_stride::workouts::{
     DraftState, SqliteWorkouts, WorkoutError, WorkoutService,
     benchmarks::{
         document::{ContextDocument, ProposalDocument},
@@ -111,7 +111,7 @@ pub(super) fn seed(f: &Fixture, filled: bool) -> Result<(BenchmarkService, Propo
     let p = proposal(&service.context("BARBELL_ROW", window()?)?);
     Ok((service, p))
 }
-fn workout(f: &Fixture) -> Result<garmin_pace::workouts::Draft> {
+fn workout(f: &Fixture) -> Result<garmin_stride::workouts::Draft> {
     let doc: WorkoutDocument = serde_json::from_value(
         json!({"version":1,"name":"Strength session","sport":"strength_training","description":"Rows with reviewed loads",
         "segments":[{"sport":"strength_training","steps":[{"type":"step","kind":"interval","duration":{"type":"repetitions","count":6},"target":{"type":"none"},"exercise":{"category":"ROW","name":"BARBELL_ROW","weight_kg":50}}]}]}),
@@ -219,7 +219,7 @@ fn activity_sets_report_import_coverage_instead_of_zero() -> Result<()> {
     assert!(uncovered.session.is_none() && uncovered.import_synced_at.is_none());
     assert!(s.activity_sets(0, "2026-10-23".parse()?).is_err());
     let document = serde_json::to_value(
-        garmin_pace::workouts::benchmarks::document::ActivitySetsDocument::from(uncovered),
+        garmin_stride::workouts::benchmarks::document::ActivitySetsDocument::from(uncovered),
     )?;
     assert_eq!(document["status"], "not_synced");
     Ok(())
@@ -567,11 +567,11 @@ fn benchmark_migration_preserves_existing_workout_drafts() -> Result<()> {
     crate::workouts::seed_draft(&f)?;
     let db = rusqlite::Connection::open(&f.settings.database.path)?;
     // A real schema-5 database has neither the benchmark tables nor the MCP request journal.
-    db.execute_batch("DROP TABLE sync_run_steps; DROP TABLE sync_run_windows; DROP TABLE sync_runs; DROP INDEX workout_library_standalone; DROP TABLE coach_snapshots; ALTER TABLE workout_drafts DROP COLUMN explanation; DROP INDEX activities_sport_chronological; DROP TABLE benchmark_drafts; DROP TABLE strength_imports; DROP TABLE strength_sessions; DROP TABLE benchmark_catalog; ALTER TABLE workout_drafts DROP COLUMN mcp_request; ALTER TABLE workout_deliveries DROP COLUMN mcp_request; PRAGMA user_version=5;")?;
+    db.execute_batch("DROP TABLE coach_reschedules; DROP TABLE sync_run_steps; DROP TABLE sync_run_windows; DROP TABLE sync_runs; DROP INDEX workout_library_standalone; DROP TABLE coach_snapshots; ALTER TABLE workout_drafts DROP COLUMN explanation; DROP INDEX activities_sport_chronological; DROP TABLE benchmark_drafts; DROP TABLE strength_imports; DROP TABLE strength_sessions; DROP TABLE benchmark_catalog; ALTER TABLE workout_drafts DROP COLUMN mcp_request; ALTER TABLE workout_deliveries DROP COLUMN mcp_request; PRAGMA user_version=5;")?;
     f.init()?;
     assert_eq!(
         db.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0))?,
-        11
+        12
     );
     assert_eq!(
         db.query_row("SELECT count(*) FROM workout_drafts", [], |r| r

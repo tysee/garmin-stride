@@ -1,18 +1,18 @@
 [package]
-name = "garmin-pace"
-version = "0.2.0"
+name = "garmin-stride"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.99"
 publish = false
 description = "Local Garmin activities, health metrics and training readiness for MCP clients"
 license = "MIT"
-repository = "https://github.com/tysee/garmin-pace"
+repository = "https://github.com/tysee/garmin-stride"
 readme = "README.md"
 keywords = ["garmin", "mcp", "fitness", "sqlite", "cli"]
 categories = ["command-line-utilities"]
 
 [[bin]]
-name = "pace"
+name = "stride"
 path = "src/main.rs"
 
 [dependencies]

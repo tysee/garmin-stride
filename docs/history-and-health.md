@@ -4,33 +4,33 @@
 
 ## Import a period, then read it locally
 
-Complete [setup](getting-started.md) first. The examples assume `pace` is on PATH,
-`GARMIN_PACE_CONFIG` points to your profile, and `.env` is your private Personal API
+Complete [setup](getting-started.md) first. The examples assume `stride` is on PATH,
+`GARMIN_STRIDE_CONFIG` points to your profile, and `.env` is your private Personal API
 key file. Replace the example dates with your own period.
 
 ```sh
 # Import everything for a period: activities, strength sets, health, Coach.
-pace sync --start 2026-10-19 --end 2026-10-25
+stride sync --start 2026-10-19 --end 2026-10-25
 # After a failure or a stop, continue where it ended.
-pace sync --resume
+stride sync --resume
 
 # Or import one dataset: the local activity cache only.
-pace --env-file .env garmin sync --start 2026-10-19 --end 2026-10-25
+stride --env-file .env garmin sync --start 2026-10-19 --end 2026-10-25
 
 # Search saved history without contacting Garmin.
-pace activities search --start 2026-10-19 --end 2026-10-25 --limit 20
-pace activities search --sport strength_training --limit 20
-pace activities search --name "Morning" --limit 20
-pace activities list --limit 20 --offset 20
+stride activities search --start 2026-10-19 --end 2026-10-25 --limit 20
+stride activities search --sport strength_training --limit 20
+stride activities search --name "Morning" --limit 20
+stride activities list --limit 20 --offset 20
 
 # Read Garmin health and readiness; both Garmin credentials are required.
-pace --env-file .env health sync --start 2026-10-19 --end 2026-10-25
+stride --env-file .env health sync --start 2026-10-19 --end 2026-10-25
 
 # Inspect the imported days and a page of stored samples.
-pace health list --start 2026-10-19 --end 2026-10-25
-pace health show --date 2026-10-25
-pace health samples --date 2026-10-25 --metric heart_rate --limit 100
-pace --json health show --date 2026-10-25
+stride health list --start 2026-10-19 --end 2026-10-25
+stride health show --date 2026-10-25
+stride health samples --date 2026-10-25 --metric heart_rate --limit 100
+stride --json health show --date 2026-10-25
 ```
 
 Activity imports select Garmin local start dates; local activity searches use
@@ -41,7 +41,7 @@ Health imports cover at most 31 days per CLI call and commit each day atomically
 An activity period imports page by page. Completed pages and days survive a later
 failure.
 
-`pace sync` (menu: **Sync everything**) runs the steps in order over windows aligned
+`stride sync` (menu: **Sync everything**) runs the steps in order over windows aligned
 to the period start: activities in 31-day windows, strength sets in 31-day windows,
 health one day at a time and Coach in 7-day windows, for up to 366 days. Activities
 need the Personal API key; health and strength need the key and the Connect login;
@@ -50,8 +50,8 @@ The first failed window ends its own step, and the later steps still run. Each w
 is journaled in the profile database as it finishes, so the report says per step
 whether it is complete, partial (with the failing window and cause), failed or
 skipped, and the command exits non-zero unless every step is complete.
-`pace sync --resume` continues the latest unfinished run and skips the windows it
-already imported; a plain `pace sync` always fetches the whole period again, so
+`stride sync --resume` continues the latest unfinished run and skips the windows it
+already imported; a plain `stride sync` always fetches the whole period again, so
 today's data is refreshed. Reads retry within the Garmin request bounds; writes
 are never part of a sync. In the terminal, **Sync everything**, **Sync activities**
 and **Health → Import health** offer date shortcuts and explicit confirmation;
@@ -61,7 +61,7 @@ viewing saved data never starts a sync.
 
 - `not_synced`: no local import covers the requested day or evidence window.
 - `no_data`: the import completed, but Garmin supplied no observations.
-- An import timestamp says when Pace fetched data, not when it was measured.
+- An import timestamp says when Stride fetched data, not when it was measured.
 - Readiness keeps each snapshot's time and context; an old score is not today's score.
 - Body Battery is Garmin's energy estimate, not the watch battery level.
 
@@ -72,10 +72,10 @@ not measured samples. Missing values are never replaced with zero.
 ## Review actual strength sets
 
 ```sh
-pace --env-file .env benchmark sync --start 2026-10-01 --end 2026-10-25
-pace benchmark sync-activity --id 501
-pace benchmark list
-pace benchmark context --key BARBELL_BENCH_PRESS --start 2026-10-01 --end 2026-10-25
+stride --env-file .env benchmark sync --start 2026-10-01 --end 2026-10-25
+stride benchmark sync-activity --id 501
+stride benchmark list
+stride benchmark context --key BARBELL_BENCH_PRESS --start 2026-10-01 --end 2026-10-25
 ```
 
 Open **Activities**, choose a stored strength activity, and inspect its sets or

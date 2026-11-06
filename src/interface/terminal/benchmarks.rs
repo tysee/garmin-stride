@@ -193,7 +193,7 @@ impl App {
         let exercise = row.map_or("[exercise]".into(), |b| {
             benchmark_view::name(&b.exercise.name)
         });
-        self.view.result("Estimate with model",&format!("Use your model connected to Pace through MCP. Sync recent strength data first.\n\nAsk: Estimate my {exercise} benchmark from my recent observed loads and repetitions. Explain the averages, method and confidence.\n\nThe model reads the catalogue and observed evidence, considers available health data, and creates a local proposal.\n\nFilled benchmarks change only on your explicit request. A model may proactively propose an unset one only when a specific workout draft needs it.\n\nOpen Model proposals to review before/after values and save to Garmin. Nothing updates in the background. If the administrator granted Garmin writes for your MCP user, you can instead tell the model to save it; its quote of your instruction appears under the proposal."))?;
+        self.view.result("Estimate with model",&format!("Use your model connected to Stride through MCP. Sync recent strength data first.\n\nAsk: Estimate my {exercise} benchmark from my recent observed loads and repetitions. Explain the averages, method and confidence.\n\nThe model reads the catalogue and observed evidence, considers available health data, and creates a local proposal.\n\nFilled benchmarks change only on your explicit request. A model may proactively propose an unset one only when a specific workout draft needs it.\n\nOpen Model proposals to review before/after values and save to Garmin. Nothing updates in the background. If the administrator granted Garmin writes for your MCP user, you can instead tell the model to save it; its quote of your instruction appears under the proposal."))?;
         Ok(())
     }
     fn benchmark_proposals(&mut self) -> Result<()> {
@@ -209,7 +209,7 @@ impl App {
                 ),
                 choice(
                     "How to get a proposal",
-                    "Ask your model through MCP; Pace never requests estimates itself",
+                    "Ask your model through MCP; Stride never requests estimates itself",
                 ),
             ];
             let first = choices.len();
