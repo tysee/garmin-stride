@@ -24,8 +24,9 @@ Saved data stays readable after a failed sync, with its last successful sync tim
 <details>
 <summary>Upgrading an older development install</summary>
 
-`GARMIN_STRIDE_HTTP_TOKEN` is gone. Add `[access]` plus the HTTP `max_connections`
-and `connection_lifetime_seconds` settings from the current example, run
+`GARMIN_PACE_HTTP_TOKEN` (the shared token of the earlier garmin-pace releases)
+is gone. Add `[access]` plus the HTTP `max_connections` and
+`connection_lifetime_seconds` settings from the current example, run
 `stride users init`, issue per-user keys, fix ownership and modes, then run
 `stride init`. These commands apply the current registry and profile migrations.
 Profile schema 10 includes Coach storage and the standalone library index. Use

@@ -2,6 +2,9 @@
 # native runners with the same deploy/ scripts maintainers run locally, and publishes them as
 # GitHub Release assets when a v* tag is pushed. The tag must point at a commit on main and
 # equal the crate version; nothing else triggers a build.
+# The runtime image each archive's executable came from is pushed to ghcr.io/tysee/garmin-stride
+# as <tag>-<arch>; after the release is created, both are joined into the multi-arch <tag> image,
+# whose digest is written to the run summary for deployments that pin it.
 name: Release
 
 on:
@@ -11,10 +14,16 @@ on:
 permissions:
   contents: read
 
+env:
+  IMAGE: ghcr.io/tysee/garmin-stride
+
 jobs:
   package:
     name: Package ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: true
       matrix:
@@ -25,14 +34,13 @@ jobs:
             runner: ubuntu-24.04
     env:
       ARCH: ${{ matrix.arch }}
+      TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
       - name: Check that the tag is on main and matches the crate version
-        env:
-          TAG: ${{ github.ref_name }}
         run: |
           git merge-base --is-ancestor HEAD origin/main || { echo "Tag $TAG is not on main; release tags are created from main only" >&2; exit 1; }
           version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
@@ -40,7 +48,14 @@ jobs:
       - name: Fetch pinned Caddy
         run: bash deploy/fetch-caddy.sh "$ARCH"
       - name: Package installer archive
-        run: bash deploy/package.sh "$ARCH"
+        run: STRIDE_IMAGE_TAG="$IMAGE:$TAG-$ARCH" bash deploy/package.sh "$ARCH"
+      - name: Push the architecture image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          printf '%s' "$GH_TOKEN" | podman login ghcr.io -u "$ACTOR" --password-stdin
+          podman push "$IMAGE:$TAG-$ARCH"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: stride-linux-${{ matrix.arch }}
@@ -72,3 +87,25 @@ jobs:
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --generate-notes \
             dist/stride-linux-aarch64.tar.gz dist/stride-linux-aarch64.tar.gz.sha256 \
             dist/stride-linux-x86_64.tar.gz dist/stride-linux-x86_64.tar.gz.sha256
+
+  image:
+    name: Publish multi-arch image
+    needs: release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Join both architecture images under the release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          printf '%s' "$GH_TOKEN" | podman login ghcr.io -u "$ACTOR" --password-stdin
+          podman manifest create "$IMAGE:$TAG"
+          podman manifest add "$IMAGE:$TAG" "docker://$IMAGE:$TAG-aarch64"
+          podman manifest add "$IMAGE:$TAG" "docker://$IMAGE:$TAG-x86_64"
+          podman manifest push --all --digestfile digest "$IMAGE:$TAG" "docker://$IMAGE:$TAG"
+          echo "Image: $IMAGE:$TAG@$(cat digest)" | tee -a "$GITHUB_STEP_SUMMARY"

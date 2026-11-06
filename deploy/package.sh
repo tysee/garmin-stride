@@ -2,6 +2,8 @@
 # deploy/package.sh exports the exact Linux build for one architecture (aarch64 or x86_64) into a
 # self-contained installer archive, dist/stride-linux-<arch>.tar.gz with its .sha256 beside it.
 # The maintainer's mise task and the GitHub release workflow both run it; only explicit release assets enter dist/.
+# With STRIDE_IMAGE_TAG set, the runtime image the executable came from is also tagged with that name,
+# so the release workflow can publish exactly the image whose binary the archive contains.
 set -euo pipefail
 umask 077
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
@@ -35,6 +37,7 @@ fi
 CADDY_CACHE="$ROOT/dist/vendor/caddy-$STRIDE_CADDY_VERSION-$ARCH"
 [[ -f "$CADDY_CACHE/caddy" && -f "$CADDY_CACHE/LICENSE" ]] || { printf 'Caddy %s is not cached. Explicitly run deploy/fetch-caddy.sh %s first.\n' "$ARCH" "$ARCH" >&2; exit 1; }
 podman build --platform "$PLATFORM" --iidfile "$TEMP/image-id" -f "$ROOT/Containerfile" "$ROOT"
+if [[ -n "${STRIDE_IMAGE_TAG:-}" ]]; then podman tag "$(cat "$TEMP/image-id")" "$STRIDE_IMAGE_TAG"; fi
 CONTAINER=$(podman create --network none "$(cat "$TEMP/image-id")")
 NAME="stride-linux-$ARCH"
 RELEASE="$TEMP/$NAME"

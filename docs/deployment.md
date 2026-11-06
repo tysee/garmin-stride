@@ -43,6 +43,18 @@ https://github.com/tysee/garmin-stride/releases/latest/download/stride-linux-<ar
 Each archive has a `.sha256` file beside it. Tags on other branches and tags that
 do not match the crate version stop the workflow before any build.
 
+The same release publishes the container image the archives' executables were
+taken from, for Linux ARM64 and x86_64:
+
+```
+ghcr.io/tysee/garmin-stride:v<version>
+```
+
+The workflow's run summary prints its digest; pin `@sha256:<digest>` in
+deployments rather than the tag. The image serves authenticated MCP over HTTP
+on port 8080 as a non-root user and keeps its state in the `/data` volume, as
+described in [Podman development](#podman-development).
+
 Copy the archive and checksum to the device, verify, unpack and run `./install.sh`
 inside `stride-linux-<arch>/`. The easy setup asks for a profile name and sudo, then
 installs the binary, creates a dedicated service account with private state, runs

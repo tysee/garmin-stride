@@ -18,8 +18,8 @@ CardputerZero; Podman supports local development on macOS.
 
 ![Stride terminal Actions menu with History, Garmin, Training and Configuration sections](docs/assets/terminal-menu.png)
 
-*An anonymized illustration of the terminal menu, opened with
-`mise run container:menu`. Personal account details have been removed.*
+*The terminal menu of a freshly initialized profile, before any Garmin import.
+Open it with `stride` or, in the development container, `mise run container:menu`.*
 
 ## What you can do
 

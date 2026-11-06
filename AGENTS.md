@@ -212,7 +212,11 @@ tools through mise. Do not install tools or dependencies without authorization.
   x86_64 from the Containerfile, with Caddy pins in `deploy/release.conf`.
   `.github/workflows/release.yml` runs the same scripts on native runners for `v*` tags
   only (the tag must sit on `main` and equal the crate version) and attaches both
-  archives to the GitHub release; there is no manual or branch build. The x86_64
+  archives to the GitHub release; there is no manual or branch build. The runtime
+  image each archive's executable came from (`STRIDE_IMAGE_TAG`) is pushed to
+  `ghcr.io/tysee/garmin-stride` as `<tag>-<arch>` and, once the release exists,
+  joined into the multi-arch `<tag>` image whose digest the run summary prints;
+  there is no `latest` tag, deployments pin the digest. The x86_64
   archive is the same installer for Debian/Ubuntu servers; it is not a device validation.
 - `deploy/` contains Linux systemd and HTTPS proxy configuration. Native MCP binds
   loopback; public access requires HTTPS ingress and a firewall excluding port 8080.
